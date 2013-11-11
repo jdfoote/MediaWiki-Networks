@@ -1,0 +1,5 @@
+OriginalFiles/
+DataFiles/
+*.pyc
+.RData
+.Rhistory
