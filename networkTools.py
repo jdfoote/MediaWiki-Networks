@@ -108,7 +108,6 @@ def getUserTalkers(userID, userName, pageID, pageName, editTime, delta):
     the given time. If the edit is on another user's page, it includes any edits made by
     the "owner" of this user page on the user talk page of the current user
     (to capture cross-page conversation)'''
-    cur = conn.cursor()
     talkers = getRecentEditors(userID, pageID, editTime - delta, editTime)
     pageOwner = pageName[10:]
     pageOwnerID = getUserID(pageOwner)
@@ -193,16 +192,57 @@ def getObservations(userID, startTime, endTime, userList):
     return observationsDict
 
 
-def getEdits(userID, startTime, endTime):
-    '''Takes a user ID, and 2 times, and returns a list of (pageID, editTime) tuples
+def getEdits(userID, startTime, endTime, nonBot = True):
+    '''Takes a user ID, and 2 times, and returns a list of tuples
     for each edit made by that user in that time period'''
     cur = conn.cursor()
-    cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
+    if nonBot == True:
+        cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
             non_bot_edits WHERE user_id = %s AND edit_time > %s
+            AND edit_time < %s;""", (userID, startTime, endTime))
+    else:
+        cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
+            temp_edits WHERE user_id = %s AND edit_time > %s
             AND edit_time < %s;""", (userID, startTime, endTime))
     edits = cur.fetchall()
     cur.close()
     return edits
+
+def getEditCount(userID, startTime, endTime, nonBot = True):
+    '''Takes a user ID, and 2 times, and returns how many edits were made
+    by that user in that time period'''
+    cur = conn.cursor()
+    if nonBot == True:
+        cur.execute("""SELECT COUNT(*) FROM
+            non_bot_edits WHERE user_id = %s AND edit_time > %s
+            AND edit_time < %s;""", (userID, startTime, endTime))
+    else:
+        cur.execute("""SELECT COUNT(*) FROM
+            temp_edits WHERE user_id = %s AND edit_time > %s
+            AND edit_time < %s;""", (userID, startTime, endTime))
+    edits = cur.fetchone()
+    cur.close()
+    return edits
+
+def getActiveUsers(startTime, endTime):
+    '''Get a list of all users who have made an edit during the given time period'''
+    cur = conn.cursor()
+    cur.execute("""SELECT user_id, first_edit, last_edit from users ORDER BY first_edit ASC;""")
+    allUsers = cur.fetchall()
+    cur.close()
+    activeUsers = []
+    for u in allUsers:
+        uid, firstEd, lastEd = u
+        if firstEd > endTime:
+            break
+        elif firstEd < startTime:
+            if lastEd > startTime:
+                activeUsers.append(uid)
+        else:
+            activeUsers.append(uid)
+    return activeUsers
+
+
 
 def getLastEditor(pageID, editTime):
     '''Takes a pageID and an editTime, and returns the user id of the person who last edited
