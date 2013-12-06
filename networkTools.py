@@ -203,7 +203,7 @@ def getEdits(userID, startTime, endTime, nonBot = True):
     else:
         cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
             temp_edits WHERE user_id = %s AND edit_time > %s
-            AND edit_time < %s;""", (userID, startTime, endTime))
+            AND edit_time <= %s;""", (userID, startTime, endTime))
     edits = cur.fetchall()
     cur.close()
     return edits
@@ -220,14 +220,14 @@ def getEditCount(userID, startTime, endTime, nonBot = True):
         cur.execute("""SELECT COUNT(*) FROM
             temp_edits WHERE user_id = %s AND edit_time > %s
             AND edit_time < %s;""", (userID, startTime, endTime))
-    edits = cur.fetchone()
+    edits = cur.fetchone()[0]
     cur.close()
     return edits
 
 def getActiveUsers(startTime, endTime):
     '''Get a list of all users who have made an edit during the given time period'''
     cur = conn.cursor()
-    cur.execute("""SELECT user_id, first_edit, last_edit from users ORDER BY first_edit ASC;""")
+    cur.execute("""SELECT user_id, first_edit, last_edit from users ORDER BY user_id ASC;""")
     allUsers = cur.fetchall()
     cur.close()
     activeUsers = []
