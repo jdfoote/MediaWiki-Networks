@@ -16,6 +16,16 @@ startDate = config['startDate']
 endDate = config['endDate']
 delta = config['timeDelta']
 
+# TODO: Creating the list of dates this way is much, much better.
+# I'm just too lazy to implement now.
+'''
+currDate = startDate
+dateList = []
+while currDate < endDate:
+    dateList.append(currDate)
+    currDate += dt.timedelta(days = delta)
+    '''
+
 # Create table
 cur = conn.cursor()
 cur.execute("SELECT DISTINCT page_category from pages ORDER BY page_category ASC;")
@@ -51,7 +61,7 @@ with open(resultsFile, 'wb') as f:
         print user
         edits = nT.getEdits(user, startDate, endDate)
         currStart = startDate
-        currEnd = currStart + dT.timedelta(days=30)
+        currEnd = currStart + dT.timedelta(days=delta)
         currIndex = 0
         while currIndex < len(edits):
             # Intialize list of active days
