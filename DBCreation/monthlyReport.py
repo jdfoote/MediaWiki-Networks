@@ -25,7 +25,8 @@ SQLCategories = [c.replace(' ','_') + '_edits' for c in categories]
 createString = """CREATE TABLE userStats (
 user_id integer,
 start_date date,
-end_date date
+end_date date,
+all_edits integer
 """
 for category in SQLCategories:
     createString += ", {} integer".format(category)
@@ -57,7 +58,7 @@ with open(resultsFile, 'wb') as f:
             activeDays = []
             # Initialize dictionary
             userDict = {c:0 for c in categories}
-            userDict['allEdits'] = nT.getEditCount(user, currStart, currEnd, False)
+            allEdits = nT.getEditCount(user, currStart, currEnd, False)
             # If we're past our date, then stop.
             if currStart > endDate:
                 break
@@ -72,7 +73,7 @@ with open(resultsFile, 'wb') as f:
                     # Correct i so that we don't miss the last edit
                     i -= 1
                     break
-            userRow = [user, currStart, currEnd]
+            userRow = [user, currStart, currEnd, allEdits]
             for c in categories:
                 userRow.append(userDict[c])
                 if sum([userDict[c] for c in categories]) != i+1:
