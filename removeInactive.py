@@ -2,8 +2,8 @@ import csv
 import datetime as dt
 import yaml
 
-inputName = "/home/jeremy/Dropbox/680Data.csv"
-outputName = "/home/jeremy/Dropbox/680DataEdited.csv"
+inputName = "/home/jeremy/Dropbox/680DataEdited.csv"
+outputName = "/home/jeremy/Dropbox/680DataFinal.csv"
 daysActiveCutoff = 1
 with open('./DBCreation/config.yaml', 'r') as f:
     config = yaml.load(f)
@@ -39,7 +39,7 @@ def addMissing(userRows):
             if currStart == rowDate:
                 if currEnd < first_edit:
                     # If the user hadn't joined the community, treat as missing data
-                    newRows.append(currRow + ['.']*37)
+                    newRows.append(currRow + ['.']*len(r[3:-2]))
                     # Otherwise, just adjust the format, and add original data
                 else:
                     # Boy, this is quick and dirty!
@@ -53,20 +53,19 @@ def addMissing(userRows):
                 print [r[1] for r in userRows]
                 print last_edit
                 print userID
-            newRows.append(currRow + [0] * 37)
+            newRows.append(currRow + [0] * len(r[3:-2]))
     return newRows
-
 
 
 with open(inputName, 'rb') as f:
     c = csv.reader(f)
     activeUsers = []
     # Adjust header for new format
-    header = c.next()
-    header[1:4] = 'monthNumber','daysSinceJoining','daysSinceEditing'
+    header = c.next()[:-2]
+    header[1:5] = 'monthNumber','daysSinceJoining','daysSinceEditing', 'all_Edits', 'manual_edits'
     firstRow = c.next()
-    currID, daysActive = firstRow[0], firstRow[-4]
-    activeSum = int(daysActive)
+    currID, daysActive = firstRow[0], int(firstRow[-3])
+    activeSum = daysActive
     currUserRows = [firstRow]
     for row in c:
         # If this is a new user, check whether to add the old user to the list
@@ -78,7 +77,7 @@ with open(inputName, 'rb') as f:
             activeSum = 0
             currID = row[0]
             currUserRows = []
-        activeSum += int(row[-4])
+        activeSum += int(row[-3])
         currUserRows.append(row)
 
 with open(outputName, 'wb') as f:

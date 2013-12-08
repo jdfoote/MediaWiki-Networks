@@ -86,13 +86,19 @@ with open(resultsFile, 'wb') as f:
             userRow = [user, currStart, currEnd, allEdits]
             for c in categories:
                 userRow.append(userDict[c])
-                if sum([userDict[c] for c in categories]) != i+1:
-                    print userDict
-                    print currStart
-                    print i
-                    print edits
+            if sum([userDict[c] for c in categories]) != i+1:
+                print userDict
+                print currStart
+                print i
+                print edits
+                assert True == False
             # Add entry for number of active days
-            userRow.append(len(set(activeDays)))
+            days = len(set(activeDays))
+            if days > 30:
+                print activeDays
+                print user
+                assert True == False
+            userRow.append(days)
             o.writerow(userRow)
             # Update stuff for the next iteration
             currIndex += i + 1

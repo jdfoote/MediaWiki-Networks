@@ -194,16 +194,16 @@ def getObservations(userID, startTime, endTime, userList):
 
 def getEdits(userID, startTime, endTime, nonBot = True):
     '''Takes a user ID, and 2 times, and returns a list of tuples
-    for each edit made by that user in that time period'''
+    for each edit made by that user in that time period, from oldest to newest'''
     cur = conn.cursor()
     if nonBot == True:
         cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
             non_bot_edits WHERE user_id = %s AND edit_time > %s
-            AND edit_time < %s;""", (userID, startTime, endTime))
+            AND edit_time < %s ORDER BY edit_time ASC;""", (userID, startTime, endTime))
     else:
         cur.execute("""SELECT page_id, edit_time, page_category, page_name, user_name, comment FROM
             temp_edits WHERE user_id = %s AND edit_time > %s
-            AND edit_time <= %s;""", (userID, startTime, endTime))
+            AND edit_time <= %s ORDER BY edit_time ASC;""", (userID, startTime, endTime))
     edits = cur.fetchall()
     cur.close()
     return edits
