@@ -16,7 +16,7 @@ def makeGlobalCommNetwork(userList, startTime, endTime, delta, cutoff, globalCat
     For the complex pages, they must have edited the same section of the page (according to the
     comment)'''
     globalCommDict = {x:getGlobalComm(x, userList, startTime, endTime, delta, globalCats, complexPages) for x in userList}
-    return networkDictToMatrix(globalCommDict, cutoff = cutoff)
+    return networkDictToMatrix(globalCommDict, cutoff = cutoff, dichotomize=False)
 
 def getGlobalComm(userID, userList, startTime, endTime, delta, globalCats, complexPages):
     '''For the user ID, returns a dictionary of all of the global comm partners'''
@@ -24,7 +24,7 @@ def getGlobalComm(userID, userList, startTime, endTime, delta, globalCats, compl
     commDict = defaultdict(int)
     for edit in edits:
         pageID, editTime, pageCat, pageName, userName, comment = edit
-        if pageCat in globalCats:
+        if pageCat in globalCats or pageID in complexPages:
             if pageID in complexPages:
                 # If it's a complex page, then get only those who edited the same section (per the comment)
                 commPartners = getComplexTalkers(userID, pageID, comment, editTime - delta, editTime)
@@ -53,7 +53,7 @@ def makeLocalCommNetwork(userList, startTime, endTime, delta, cutoff, userTalkCa
     Returns an undirected, binary matrix'''
     localCommDict = {x:getLocalComm(x, userList, startTime, endTime, delta, userTalkCats, contentTalkCats) for x in userList}
     print max(localCommDict.values())
-    return networkDictToMatrix(localCommDict, cutoff = cutoff)
+    return networkDictToMatrix(localCommDict, cutoff = cutoff,dichotomize=False)
 
 def getLocalComm(userID, userList, startTime, endTime, delta, userTalkCats, contentTalkCats):
     '''For the user ID, returns a dictionary of all of the comm partners (in the
@@ -105,10 +105,13 @@ def getSectionFromComment(comment):
 
 def getUserTalkers(userID, userName, pageID, pageName, editTime, delta):
     '''For a given edit, returns a list of others who have either edited the same page in
-    the given time. If the edit is on another user's page, it includes any edits made by
+    the last delta days before editTime, or had a conversation across pages.
+
+    If the edit is on another user's page, it includes any edits made by
     the "owner" of this user page on the user talk page of the current user
     (to capture cross-page conversation)'''
-    talkers = getRecentEditors(userID, pageID, editTime - delta, editTime)
+    startTime = editTime - delta
+    talkers = getRecentEditors(userID, pageID, startTime, editTime)
     pageOwner = pageName[10:]
     pageOwnerID = getUserID(pageOwner)
     # If the page owner isn't already in the list of talkers, see if he/she has edited
@@ -118,8 +121,13 @@ def getUserTalkers(userID, userName, pageID, pageName, editTime, delta):
         usersPageName = 'User talk:{}'.format(userName)
         userPageID = getPageID(usersPageName)
         # Get the last edit made by the current user on this page (to avoid double counting)
-        startTime = getLastEditByUser(userID, pageID, editTime)
+        lastEdit = getLastEditByUser(userID, pageID, startTime, editTime)
+        # If there was an edit by the current user on this page, then only get edits from
+        # his page that are after that time.
+        startTime = lastEdit if lastEdit else startTime
         usersPageEditors = getRecentEditors(userID, userPageID, startTime, editTime)
+        # If the other person edited the current user's page in the given time period,
+        # then add them as a co-communicator
         if pageOwnerID in usersPageEditors:
             talkers |= pageOwnerID
     return talkers
@@ -138,20 +146,21 @@ def getPageID(pageName):
     cur.close()
     return pid
 
-def getLastEditByUser(userID, pageID, editTime):
-    '''Gets the most recent (non-automated) edit by a given user on a given page, before the
-    given time'''
+def getLastEditByUser(userID, pageID, startTime, endTime):
+    '''Gets the most recent (non-automated) edit by a given user on a given page, after
+    the startTime, and before the endTime'''
     cur = conn.cursor()
     cur.execute("""SELECT edit_time from non_bot_edits WHERE
-            user_id = %s AND page_id = %s AND edit_time < %s
-            ORDER BY edit_time DESC;""", (userID, pageID,editTime))
+            user_id = %s AND page_id = %s AND edit_time < %s AND edit_time > %s
+            ORDER BY edit_time DESC;""", (userID, pageID, startTime, endTime))
     lastEdit = cur.fetchone()
     cur.close()
-    result = lastEdit if lastEdit else None
+    # Return the result. Or, if there is no result, return the 
+    result = lastEdit if lastEdit else startTime
     return result
 
 def getRecentEditors(userID, pageID, startTime, endTime):
-    '''Figures out which editors have edited a page in the delta days before editTime,
+    '''Figures out which editors have edited a page between the start time and end time,
     as long as userID hasn't edited since their edit. Returns a set of ids'''
     uids = []
     editors = getPageEdits(pageID, startTime, endTime)
@@ -177,7 +186,7 @@ def makeObservationNetwork(userList, startTime, endTime, cutoff):
     Returns a directed, binary network matrix, where X(ij) = 1 if j was the last editor of
     a page that i edited between the start and end dates (and if i!=j).'''
     observationDict = {x:getObservations(x, startTime, endTime, userList) for x in userList}
-    return networkDictToMatrix(observationDict, cutoff = cutoff)
+    return networkDictToMatrix(observationDict, cutoff = cutoff, dichotomize = False)
 
 def getObservations(userID, startTime, endTime, userList):
     '''Takes a userID, startTime, endTime, and userList. Returns a dictionary of the form
