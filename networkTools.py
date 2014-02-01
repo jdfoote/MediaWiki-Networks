@@ -84,7 +84,8 @@ def getComplexTalkers(userID, pageID, origComment, startTime, endTime):
     for edit in edits:
         uID, editTime, comment = edit
         currSec = getSectionFromComment(comment)
-        if currSec and currSec == origSec:
+        # Match if the comment is from the same section, or if it isn't from a section
+        if not currSec or currSec == origSec:
         # Only get the edits since the last edit by this user (others will have been counted
         # when looking at that edit)
             if uID == userID:
@@ -96,11 +97,19 @@ def getComplexTalkers(userID, pageID, origComment, startTime, endTime):
 
 
 def getSectionFromComment(comment):
-    '''Takes a string that may have /* + section + */, and/or section + [date], and gets rid
-    of the superfluous info, to match sections'''
-    comment = re.sub(r'\/\* (.*) \*\/.*',r'\1', comment)
-    section = re.sub(r' \[[^]]*\]$', '', comment)
-    return section
+    '''Finds the section an edit was made to, based on the comment.
+
+    The first edit to a section is formatted as "Section name [dd mon yyyy]".
+    Subsequent edits are "/* Section name \* Comment here".
+    If there is no section name, then return None.'''
+    a = re.match(r'\/\* (.*) \*\/.*', comment)
+    if a:
+        return a.group(1)
+    b = re.match(r'(.*) \[[^]]*\]$', comment)
+    if b:
+        return b.group(1)
+    else:
+        return None
 
 
 def getUserTalkers(userID, userName, pageID, pageName, editTime, delta):
