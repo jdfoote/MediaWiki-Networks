@@ -4,7 +4,7 @@ import datetime
 import psycopg2
 from collections import defaultdict
 
-conn = psycopg2.connect("dbname=weRelate user=jeremy")
+conn = psycopg2.connect("dbname=testData user=jeremy")
 
 def makeGlobalCommNetwork(userList, startTime, endTime, delta, cutoff, globalCats, complexPages):
     '''Each edit made by each user in the userlist is examined.
