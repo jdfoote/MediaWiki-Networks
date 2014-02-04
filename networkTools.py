@@ -3,8 +3,12 @@ import csv
 import datetime
 import psycopg2
 from collections import defaultdict
+import yaml
 
-conn = psycopg2.connect("dbname=testData user=jeremy")
+with open('config.yaml', 'rb') as f:
+    config = yaml.load(f)
+
+conn = psycopg2.connect("dbname={} user=jeremy".format(config['database'])
 
 def makeGlobalCommNetwork(userList, startTime, endTime, delta, cutoff, globalCats, complexPages):
     '''Each edit made by each user in the userlist is examined.

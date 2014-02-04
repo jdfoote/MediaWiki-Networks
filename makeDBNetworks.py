@@ -1,19 +1,22 @@
 import networkTools as nt
 import datetime as dt
 import csv
+import yaml
 
 networkTypes = ["observation", "localComm", "globalComm"]
 nodeList = '/home/jeremy/Programming/WeRelate/DataFiles/WatchAndLearn/watchAndLearnNodes.csv'
 saveLocation = '/home/jeremy/Programming/WeRelate/DataFiles/WatchAndLearn/'
-startDate = dt.datetime(2012,07,03)
-endDate = dt.datetime(2013,02,26)
-delta = dt.timedelta(30) # Time between networks, in days
-commDelta = dt.timedelta(7) # Max time between communication edits.
-cutoffLevel = 1
-userTalkCats = ['User talk']
-contentTalkCats = ['Person talk','Image talk', 'Givenname talk', 'Surname talk', 'Place talk', 'Source talk', 'Family talk', 'MySource talk', 'Repository talk']
-globalCats = ['Help talk', 'WeRelate talk', 'Template talk', 'Category talk']
-complexPages = ['2031061', '2723696', '7242635']
+with open('config.yaml', 'rb') as f:
+    config = yaml.load(f)
+startDate = config['startDate']
+endDate = config['endDate']
+delta = config['delta'] # Time between networks, in days
+commDelta = config['commDelta'] # Max time between communication edits.
+cutoffLevel = config['cutoff']
+userTalkCats = config['userTalkCats']
+contentTalkCats = config['contentTalkCats']
+globalCats = config['globalCats']
+complexPages = config['complexPages']
 
 print "Connecting to DB..."
 

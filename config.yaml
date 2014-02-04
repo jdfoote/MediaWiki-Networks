@@ -1,3 +1,12 @@
+database: testData
 startDate: 2005-10-26 # Date of first edit
 endDate: 2013-02-26 # Date of most recent edit
 timeDelta: 30 # Days between periods of interest (for creating networks or behavior summaries
+nodeList: ~/Programming/WeRelate/DataFiles/WatchAndLearn/watchAndLearnNodes.csv
+saveLocation: ~/Programming/WeRelate/DataFiles/WatchAndLearn/
+commDelta: 7 # Max time between communication edits. 
+cutoffLevel: 1
+userTalkCats: [User talk]
+contentTalkCats: [Person talk, Image talk, Givenname talk, Surname       talk, Place talk, Source talk, Family talk, MySource talk, Repository talk]
+globalCats: [Help talk, WeRelate talk, Template talk, Category   talk]
+complexPages: ["2031061", "2723696", "7242635"]
