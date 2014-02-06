@@ -1,0 +1,31 @@
+userID,userName,editTime,pageID,comment,pageCategory,pageName,myComment
+1,Pkeegstra,2013-02-25 00:55:52,1,,Person,Person:Bieuwke Bos (1),==ObservationTest1: Don't add edits before original editor's last edit ==
+2,Pkeegstra,2013-02-25 00:35:52,1,,Person,Person:Bieuwke Bos (1),Should be added
+3,Pkeegstra,2013-02-24 00:30:52,1,,Person,Person:Bieuwke Bos (1),Should be added
+1,Pkeegstra,2013-02-23 00:25:52,1,,Person,Person:Bieuwke Bos (1),Original author
+4,Pkeegstra,2013-02-22 00:15:52,1,,Person,Person:Bieuwke Bos (1),Should not be added
+5,Pkeegstra,2013-02-21 00:55:52,1,,Person,Person:Bieuwke Bos (1),==ObservationTest2: Don't add stuff from nodes not in list==
+6,Pkeegstra,2013-02-20 00:35:52,1,,Person,Person:Bieuwke Bos (1),Should be added
+7,Pkeegstra,2013-02-15 00:30:52,1,,Person,Person:Bieuwke Bos (1),Should be added
+400,Pkeegstra,2013-02-15 00:15:52,1,,Person,Person:Bieuwke Bos (1),Should not be added
+1,Pkeegstra,2013-02-25 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),==Local Comm Test 1: Don't add things too late; delta of 7 days ==
+9,Pkeegstra,2013-02-24 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),Should be added
+10,Pkeegstra,2013-02-17 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),Should not be added
+1,Pkeegstra,2013-02-25 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),==Local Comm Test 1.5: Don't add things before user's last edit ==
+91,Pkeegstra,2013-02-24 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),Should be added
+1,Pkeegstra,2013-02-13 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),Should not be added
+92,Pkeegstra,2013-02-22 00:55:25,2,,Person talk,Person talk:Hindrik Langeland (1),Should not be added
+1,Delijim,2013-02-25 00:54:49,3,,User talk,User talk:Delijim,==Local Comm Test 2: Talk on this user's page, up to delta ==
+11,Delijim,2013-02-24 00:54:49,3,,User talk,User talk:Delijim,Should be added
+12,Delijim,2013-02-23 00:54:49,3,,User talk,User talk:Delijim,Should be added
+13,Delijim,2013-02-17 00:54:49,3,,User talk,User talk:Delijim,Should not be added
+1,Delijim,2013-02-25 00:54:49,3,,User talk,User talk:Delijim,==Local Comm Test 3: Talk on this user's page, up to user's last edit ==
+14,Delijim,2013-02-24 00:54:49,4,,User talk,User talk:Delijim,Should be added
+15,Delijim,2013-02-24 00:54:49,4,,User talk,User talk:Delijim,Should be added
+1,Delijim,2013-02-23 00:54:49,4,,User talk,User talk:Delijim,Should not be added
+16,Delijim,2013-02-17 00:54:49,4,,User talk,User talk:Delijim,Should not be added
+1,Delijim,2013-02-25 00:54:49,5,,User talk,User talk:Pkgeestra,==Local Comm Test 3: Talk on another user's page; shouldn't include other users ==
+17,Pkgeestra,2013-02-24 00:54:49,6,,User talk,User talk:Delijim,Should be added
+18,Joe Shmoe,2013-02-24 00:54:49,6,,User talk,User talk:Delijim,Should not be added
+1,Delijim,2013-02-25 00:54:49,5,,User talk,User talk:Pkgeestra,==Local Comm Test 3: Talk on another user's page; not after delta ==
+19,Pkgeestra,2013-02-14 00:54:49,6,,User talk,User talk:Delijim,Should not be added

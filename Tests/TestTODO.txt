@@ -1,0 +1,3 @@
+Test to make sure we aren't missing edits which occur at the edge between 2 periods.
+
+Create file to test edge cases.
