@@ -8,7 +8,26 @@ import yaml
 with open('config.yaml', 'rb') as f:
     config = yaml.load(f)
 
-conn = psycopg2.connect("dbname={} user=jeremy".format(config['database'])
+conn = psycopg2.connect("dbname={} user=jeremy".format(config['database']))
+
+def makeObservationNetwork(userList, startTime, endTime, cutoff):
+    '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
+    Returns a directed, binary network matrix, where X(ij) = 1 if j was the last editor of
+    a page that i edited between the start and end dates (and if i!=j).'''
+    observationDict = {x:getObservations(x, startTime, endTime, userList) for x in userList}
+    return networkDictToMatrix(observationDict, cutoff = cutoff, dichotomize = False)
+
+def getObservations(userID, startTime, endTime, userList):
+    '''Takes a userID, startTime, endTime, and userList. Returns a dictionary of the form
+    {userID1: count, ....}. Count is the number of times that each userID was the last editor of
+    a page that the the focal user edited between the startTime and endTime.'''
+    edits = getEdits(userID, startTime, endTime)
+    observationsDict = defaultdict(int)
+    for edit in edits:
+        observed = getLastEditor(edit[0], edit[1])
+        if observed != userID and observed in userList:
+            observationsDict[observed] += 1
+    return observationsDict
 
 def makeGlobalCommNetwork(userList, startTime, endTime, delta, cutoff, globalCats, complexPages):
     '''Each edit made by each user in the userlist is examined.
@@ -20,7 +39,7 @@ def makeGlobalCommNetwork(userList, startTime, endTime, delta, cutoff, globalCat
     For the complex pages, they must have edited the same section of the page (according to the
     comment)'''
     globalCommDict = {x:getGlobalComm(x, userList, startTime, endTime, delta, globalCats, complexPages) for x in userList}
-    return networkDictToMatrix(globalCommDict, cutoff = cutoff, dichotomize=False)
+    return networkDictToMatrix(globalCommDict, cutoff = cutoff, dichotomize=False, directed = False)
 
 def getGlobalComm(userID, userList, startTime, endTime, delta, globalCats, complexPages):
     '''For the user ID, returns a dictionary of all of the global comm partners'''
@@ -56,8 +75,7 @@ def makeLocalCommNetwork(userList, startTime, endTime, delta, cutoff, userTalkCa
 
     Returns an undirected, binary matrix'''
     localCommDict = {x:getLocalComm(x, userList, startTime, endTime, delta, userTalkCats, contentTalkCats) for x in userList}
-    print max(localCommDict.values())
-    return networkDictToMatrix(localCommDict, cutoff = cutoff,dichotomize=False)
+    return networkDictToMatrix(localCommDict, cutoff = cutoff,dichotomize=False, directed = False)
 
 def getLocalComm(userID, userList, startTime, endTime, delta, userTalkCats, contentTalkCats):
     '''For the user ID, returns a dictionary of all of the comm partners (in the
@@ -67,7 +85,7 @@ def getLocalComm(userID, userList, startTime, endTime, delta, userTalkCats, cont
     for edit in edits:
         pageID, editTime, pageCat, pageName, userName, comment = edit
         if pageCat in userTalkCats:
-            commPartners = getUserTalkers(userID, userName, pageID, pageName, editTime, delta)
+            commPartners = getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment)
         elif pageCat in contentTalkCats:
             commPartners = getRecentEditors(userID, pageID, editTime - delta, editTime)
         else:
@@ -88,8 +106,8 @@ def getComplexTalkers(userID, pageID, origComment, startTime, endTime):
     for edit in edits:
         uID, editTime, comment = edit
         currSec = getSectionFromComment(comment)
-        # Match if the comment is from the same section, or if it isn't from a section
-        if not currSec or currSec == origSec:
+        # Match if the comment is from the same section, or if either edit doesn't have a section
+        if not currSec or not origSec or currSec == origSec:
         # Only get the edits since the last edit by this user (others will have been counted
         # when looking at that edit)
             if uID == userID:
@@ -116,33 +134,38 @@ def getSectionFromComment(comment):
         return None
 
 
-def getUserTalkers(userID, userName, pageID, pageName, editTime, delta):
-    '''For a given edit, returns a list of others who have either edited the same page in
-    the last delta days before editTime, or had a conversation across pages.
+def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment):
+    '''For a given edit, first gets a list of others who have edited the same section
+    of this page in the last delta days before editTime.
 
-    If the edit is on another user's page, it includes any edits made by
-    the "owner" of this user page on the user talk page of the current user
-    (to capture cross-page conversation)'''
+    If the edit is on another user's page, it adds the owner of this page, if
+    the "owner" of this user page has edited the user's talk page within the period of
+    interest (to capture cross-page conversation)'''
     startTime = editTime - delta
-    talkers = getRecentEditors(userID, pageID, startTime, editTime)
+    talkers = getComplexTalkers(userID, pageID, comment, startTime, editTime)
     pageOwner = pageName[10:]
     pageOwnerID = getUserID(pageOwner)
-    # If the page owner isn't already in the list of talkers, see if he/she has edited
-    # the current users' page
+    # If the page owner (call him Oscar) isn't already in the list of talkers, see if he/she has edited
+    # the current users' (Carl) page
     if userName != pageOwner and pageOwnerID not in talkers:
-        # Get the current user's page ID
+        # Get the Carl's page ID
         usersPageName = 'User talk:{}'.format(userName)
         userPageID = getPageID(usersPageName)
-        # Get the last edit made by the current user on this page (to avoid double counting)
+        # Get the last edit made by the Carl on Oscar's page (to avoid double counting)
         lastEdit = getLastEditByUser(userID, pageID, startTime, editTime)
-        # If there was an edit by the current user on this page, then only get edits from
+        # If there was an edit by Carl on this page, then only get edits from
         # his page that are after that time.
         startTime = lastEdit if lastEdit else startTime
-        usersPageEditors = getRecentEditors(userID, userPageID, startTime, editTime)
+        # Get all of the edits from Carl's page
+        usersPageEdits = getPageEdits(userPageID, startTime, editTime)
+        usersPageEditors = [x[0] for x in usersPageEdits]
         # If the other person edited the current user's page in the given time period,
         # then add them as a co-communicator
         if pageOwnerID in usersPageEditors:
-            talkers |= pageOwnerID
+            # TODO: Check to make sure that Carl didn't edit his own page in the delta days after
+            # Oscar edited Carl's page (since these will already be counted);
+            # What if there are multiple edits by Oscar? Need to check them all.... blech.
+            talkers.add(pageOwnerID)
     return talkers
 
 def getUserID(userName):
@@ -150,26 +173,28 @@ def getUserID(userName):
     cur.execute("""SELECT user_id from users WHERE user_name = %s;""", (userName,))
     uid = cur.fetchone()
     cur.close()
-    return uid
+    if not uid:
+        raise Exception("User name not found!")
+    return uid[0]
 
 def getPageID(pageName):
     cur = conn.cursor()
     cur.execute("""SELECT page_id from pages WHERE page_name = %s;""", (pageName,))
     pid = cur.fetchone()
     cur.close()
-    return pid
+    return None if not pid else pid[0]
 
 def getLastEditByUser(userID, pageID, startTime, endTime):
-    '''Gets the most recent (non-automated) edit by a given user on a given page, after
-    the startTime, and before the endTime'''
+    '''Gets the time of the most recent (non-automated) edit by a given user on a given page, after
+    the startTime, and before the endTime. Returns None if there is no edit'''
     cur = conn.cursor()
     cur.execute("""SELECT edit_time from non_bot_edits WHERE
             user_id = %s AND page_id = %s AND edit_time < %s AND edit_time > %s
             ORDER BY edit_time DESC;""", (userID, pageID, startTime, endTime))
     lastEdit = cur.fetchone()
     cur.close()
-    # Return the result. Or, if there is no result, return the 
-    result = lastEdit if lastEdit else startTime
+    # Return the result. Or, if there is no result, return the start time
+    result = None if not lastEdit else lastEdit[0]
     return result
 
 def getRecentEditors(userID, pageID, startTime, endTime):
@@ -193,26 +218,6 @@ def getPageEdits(pageID, startTime, endTime):
             ORDER BY edit_time DESC;""", (pageID, startTime, endTime))
     edits = cur.fetchall()
     return edits
-
-def makeObservationNetwork(userList, startTime, endTime, cutoff):
-    '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
-    Returns a directed, binary network matrix, where X(ij) = 1 if j was the last editor of
-    a page that i edited between the start and end dates (and if i!=j).'''
-    observationDict = {x:getObservations(x, startTime, endTime, userList) for x in userList}
-    return networkDictToMatrix(observationDict, cutoff = cutoff, dichotomize = False)
-
-def getObservations(userID, startTime, endTime, userList):
-    '''Takes a userID, startTime, endTime, and userList. Returns a dictionary of the form
-    {userID1: count, ....}. Count is the number of times that each userID was the last editor of
-    a page that the the focal user edited between the startTime and endTime.'''
-    edits = getEdits(userID, startTime, endTime)
-    observationsDict = defaultdict(int)
-    for edit in edits:
-        observed = getLastEditor(edit[0], edit[1])
-        if observed != userID and observed in userList:
-            observationsDict[observed] += 1
-    return observationsDict
-
 
 def getEdits(userID, startTime, endTime, nonBot = True):
     '''Takes a user ID, and 2 times, and returns a list of tuples
@@ -278,89 +283,58 @@ def getLastEditor(pageID, editTime):
     cur.close()
     return uid
 
-#from xml.etree.ElementTree import iterparse
-def makeWatchDict(placesDoc):
-    '''Takes a TSV watchlist in the format user\tnamespace\tpage, and returns a dictionary
-    in the format {page:[user 1,user 2,...]...}'''
-    with open(placesDoc, 'rb') as csvfile:
-        f = csv.reader(csvfile,delimiter='\t')
-        watchDict = {}
-        for row in f:
-            userID, ns, page = row
-            if ns == '106':
-                if page in watchDict:
-                    # Add the person watching to the page
-                    watchDict[page].append(userID)
-                else:
-                    watchDict[page] = [userID]
-    return watchDict
 
-def makeEditorDict(watchDict, editsDoc, endDate):
-    with open(editsDoc, 'rb') as csvfile:
-        f = csv.reader(csvfile, delimiter=',')
-        idsToIgnore = ["0","48",'']
-        editorDict = {}
-        #Skip header
-        f.next()
-        for row in f:
-            pageTitle = row[1]
-            contributor = row[3]
-            revDate = datetime.datetime.strptime(row[5], '%Y%m%d%H%M%S')
-            if contributor not in idsToIgnore and revDate < endDate and pageTitle in watchDict:
-                if pageTitle in editorDict:
-                    editorDict[pageTitle].add(contributor)
-                #    print pageTitle, editorDict[pageTitle]
-                else:
-                    editorDict[pageTitle] = set([contributor,])
-    return editorDict
-
-def makeNetwork(watchDict, editorDict):
-    networkDict = {}
-    for page in editorDict:
-        for watcher in watchDict[page]:
-#            print watcher
-            if watcher not in networkDict:
-                networkDict[watcher] = {editor: 1 for editor in editorDict[page] if editor != watcher}
-            else:
-                for editor in editorDict[page]:
-                    if editor != watcher:
-                        networkDict[watcher][editor] = networkDict[watcher].get(editor, 0) + 1
-                        if editor not in networkDict:
-                            networkDict[editor] = {}
-
-    return networkDict
-
-def getNodes(networkDicts, cutoff):
-    nodes = set([])
-    for network in networkDicts:
-        for watcher in network:
-            for editor in network[watcher]:
-                if network[watcher][editor] >= cutoff:
-                    nodes.add(watcher)
-                    nodes.add(editor)
-    return sorted(list(nodes))
-
-def networkDictToMatrix(nDict, nodeList=[], cutoff=1, dichotomize=True):
+def networkDictToMatrix(nDict, nodeList=[], cutoff=1, dichotomize=True, directed = True):
     '''Takes a dictionary in the format {watcher: {editor: count,...},...}, a list of nodes of 
     interest, and a cutoff point. Returns a binary matrix of watchers, in the format
     0 0 0 0 1 0 1
     1 1 0 0 0 0 1
     where ij represented a directed relationship between i and j of that strength.'''
+    print nDict
     if not nodeList:
         nodeList = sorted(nDict)
     finalMatrix = []
     for i in nodeList:
         iRow = []
         for j in nodeList:
-            if i in nDict and j in nDict[i] and nDict[i][j] >= cutoff:
-                if dichotomize:
-                    iRow.append('1')
-                else:
-                    iRow.append(str(nDict[i][j]))
+            if i in nDict and j in nDict[i]:
+                iRow.append(nDict[i][j])
             else:
-                iRow.append('0')
+                iRow.append(0)
         finalMatrix.append(iRow)
+    if not directed:
+        finalMatrix = directedToUndirected(finalMatrix)
+    if dichotomize:
+        finalMatrix = dichotomize(finalMatrix)
     return listsToMatrix(finalMatrix)
+
+
+def directedToUndirected(matrix, combinationFunction = lambda x, y: x+y):
+    '''Takes a directed matrix (in the form of lists of lists), and applies the combination
+    function (by default, a sum of both values). The result is then put in both X(i,j) and
+    X(j,i).'''
+    # Make sure it's a square
+    if len(matrix) != len(matrix[0]):
+        raise Exception("Not a square matrix!")
+    for i in range(len(matrix)):
+        for j in range(i+1):
+            # For each edge, apply the combination function, and edit in place
+            result = combinationFunction(matrix[i][j], matrix[j][i])
+            matrix[i][j] = matrix[j][i] = result
+    return matrix
+
+def dichotomize(matrix, cutoff):
+    '''Takes a directed matrix (in the form of lists of lists), and makes it a binary
+    matrix, replacing everything equal to or greater than the cutoff with a '1', and everything
+    under with a '0' '''
+    # Make sure it's a square
+    if len(matrix) != len(matrix[0]):
+        raise Exception("Not a square matrix!")
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            matrix[i][j] = min(matrix[i][j],1)
+    return matrix
+
 
 def listsToMatrix(lists):
     '''Takes a list of lists, and changes it to a string-based matrix'''
@@ -368,6 +342,6 @@ def listsToMatrix(lists):
     for l in lists:
         currString = ''
         for i in l:
-            currString += i + ' '
+            currString += str(i) + ' '
         finalString += currString[:-1] + '\n'
     return finalString
