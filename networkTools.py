@@ -126,10 +126,10 @@ def getSectionFromComment(comment):
     If there is no section name, then return None.'''
     a = re.match(r'\/\* (.*) \*\/.*', comment)
     if a:
-        return a.group(1)
-    b = re.match(r'(.*) \[[^]]*\]$', comment)
+        return a.group(1).rstrip()
+    b = re.match(r'(.*)\[[^]]*\]$', comment)
     if b:
-        return b.group(1)
+        return b.group(1).rstrip()
     else:
         return None
 
@@ -158,14 +158,18 @@ def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment)
         startTime = lastEdit if lastEdit else startTime
         # Get all of the edits from Carl's page
         usersPageEdits = getPageEdits(userPageID, startTime, editTime)
-        usersPageEditors = [x[0] for x in usersPageEdits]
-        # If the other person edited the current user's page in the given time period,
-        # then add them as a co-communicator
-        if pageOwnerID in usersPageEditors:
-            # TODO: Check to make sure that Carl didn't edit his own page in the delta days after
-            # Oscar edited Carl's page (since these will already be counted);
-            # What if there are multiple edits by Oscar? Need to check them all.... blech.
-            talkers.add(pageOwnerID)
+        # If the Oscar edited Carl's page in the given time period,
+        # then add him as a co-communicator
+        for edit in usersPageEdits:
+            if edit[0] == pageOwnerID:
+                # If Carl editited his own page within the delta days after Oscar
+                # edited Carl's page, then this communication will already be counted, so
+                # we should ignore it
+                userPageEnd = edit[1] + delta
+                if not getLastEditByUser(userID, userPageID, edit[1], userPageEnd):
+                    talkers.add(pageOwnerID)
+                    # Once we've found one communication, we don't need to keep looking
+                    break
     return talkers
 
 def getUserID(userName):
@@ -189,7 +193,7 @@ def getLastEditByUser(userID, pageID, startTime, endTime):
     the startTime, and before the endTime. Returns None if there is no edit'''
     cur = conn.cursor()
     cur.execute("""SELECT edit_time from non_bot_edits WHERE
-            user_id = %s AND page_id = %s AND edit_time < %s AND edit_time > %s
+            user_id = %s AND page_id = %s AND edit_time > %s AND edit_time < %s
             ORDER BY edit_time DESC;""", (userID, pageID, startTime, endTime))
     lastEdit = cur.fetchone()
     cur.close()
