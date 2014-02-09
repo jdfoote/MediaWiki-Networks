@@ -8,7 +8,7 @@ import yaml
 with open('config.yaml', 'rb') as f:
     config = yaml.load(f)
 
-conn = psycopg2.connect("dbname={} user=jeremy".format(config['database']))
+conn = psycopg2.connect("dbname={} user={}".format(config['database'], config['user']))
 
 def makeObservationNetwork(userList, startTime, endTime, cutoff):
     '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
@@ -310,7 +310,7 @@ def networkDictToMatrix(nDict, nodeList=[], cutoff=1, dichotomize=True, directed
         finalMatrix = directedToUndirected(finalMatrix)
     if dichotomize:
         finalMatrix = dichotomize(finalMatrix)
-    return listsToMatrix(finalMatrix)
+    return finalMatrix
 
 
 def directedToUndirected(matrix, combinationFunction = lambda x, y: x+y):
@@ -338,14 +338,3 @@ def dichotomize(matrix, cutoff):
         for j in range(len(matrix)):
             matrix[i][j] = min(matrix[i][j],1)
     return matrix
-
-
-def listsToMatrix(lists):
-    '''Takes a list of lists, and changes it to a string-based matrix'''
-    finalString = ''
-    for l in lists:
-        currString = ''
-        for i in l:
-            currString += str(i) + ' '
-        finalString += currString[:-1] + '\n'
-    return finalString

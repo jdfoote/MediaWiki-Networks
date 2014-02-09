@@ -1,4 +1,5 @@
-database: testData
+database: testdata
+user: kedra
 startDate: 2005-10-26 # Date of first edit
 endDate: 2013-02-26 # Date of most recent edit
 timeDelta: 30 # Days between periods of interest (for creating networks or behavior summaries

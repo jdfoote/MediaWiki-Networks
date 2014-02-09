@@ -16,6 +16,10 @@ globalCats = config['globalCats']
 complexPages = config['complexPages']
 commDelta = dt.timedelta(days=config['commDelta'])
 
+obsMatrix = './Tests/obsMatrix.csv'
+localCom = './Tests/localComMatrix.csv'
+globalCom = './Tests/globalComMatrix.csv'
+
 def testGetSectionFromComment():
     testStrings = ['/* Test */', '/* Test1 */', '/* Test */ Doing some stuff', '/* Test */ [14 January 2012]', 'Test [14 January 2011]', 'Test [15 January 2010']
     sections = [nT.getSectionFromComment(x) for x in testStrings]
@@ -26,7 +30,10 @@ def testGetSectionFromComment():
 
 def observationTest():
     obsNetwork = nT.makeObservationNetwork(userList, startTime, endTime, 1)
-#    print obsNetwork
+    with open(obsMatrix, 'rb') as f:
+        testMatrix = csv.reader(f, delimiter = ' ')
+        for row in obsNetwork:
+            assert testMatrix.next() == [str(x) for x in row]
 
 def localCommTest():
     commNetwork = nT.makeLocalCommNetwork(userList, startTime, endTime, commDelta, cutoff, userTalk, contentTalk)

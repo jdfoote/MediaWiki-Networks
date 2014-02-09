@@ -36,5 +36,6 @@ for networkType in networkTypes:
                 print 'Need to change the network type'
             with open('{}{}_{}.csv'.format(saveLocation, currStart.strftime('%Y_%m_%d'),networkType), 'wb') as o:
                 print 'Writing {}'.format(currStart.strftime('%Y-%m-%d'))
-                o.write(currNetwork)
+                output = csv.writer(o, delimiter = ' ')
+                output.writerows(currNetwork)
             currStart = currEnd
