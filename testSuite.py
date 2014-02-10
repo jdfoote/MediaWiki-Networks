@@ -36,13 +36,28 @@ def observationTest():
             assert testMatrix.next() == [str(x) for x in row]
 
 def localCommTest():
-    commNetwork = nT.makeLocalCommNetwork(userList, startTime, endTime, commDelta, cutoff, userTalk, contentTalk)
-#    print commNetwork
+    localNetwork = nT.makeLocalCommNetwork(userList, startTime, endTime, commDelta, cutoff, userTalk, contentTalk)
+    with open(localCom, 'rb') as f:
+        testMatrix = csv.reader(f, delimiter = ' ')
+        for row in localNetwork:
+            testRow = testMatrix.next()
+            trueRow = [str(x) for x in row]
+            assert testRow == trueRow
+            if testRow != trueRow:
+                print testRow
+                print trueRow
 
 def globalCommTest():
-#    print globalCats
     globalNet = nT.makeGlobalCommNetwork(userList, startTime, endTime, commDelta, cutoff, globalCats, complexPages)
-#    print globalNet
+    with open(globalCom, 'rb') as f:
+        testMatrix = csv.reader(f, delimiter = ' ')
+        for row in globalNet:
+            testRow = testMatrix.next()
+            trueRow = [str(x) for x in row]
+#            assert testRow == trueRow
+            if testRow != trueRow:
+                print testRow
+                print trueRow
 
 testGetSectionFromComment()
 observationTest()
