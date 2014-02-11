@@ -4,7 +4,6 @@ DataFiles/
 .RData
 .Rhistory
 *.py[cod]
-config.yaml
 
 # C extensions
 *.so

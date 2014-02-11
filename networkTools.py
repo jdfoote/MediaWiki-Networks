@@ -2,6 +2,7 @@ import re
 import csv
 import datetime
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from collections import defaultdict
 import yaml
 
@@ -338,3 +339,18 @@ def dichotomize(matrix, cutoff):
         for j in range(len(matrix)):
             matrix[i][j] = min(matrix[i][j],1)
     return matrix
+
+##### Statistics #########
+
+
+def getStats(user, startDate, cats):
+    '''Takes a userID, a startDate, the name of the behavior variable, and a dictionary of lists 
+    of categories. Returns a dictionary of each of the stats, with the categories condensed'''
+    cur = conn.cursor(cursor_factory = RealDictCursor)
+    cur.execute("""SELECT * from userstats WHERE user_id = %s AND start_date = %s;""",
+            (user, startDate))
+    print cur.query
+    stats = cur.fetchone()
+    cur.close()
+    print stats
+    return stats
