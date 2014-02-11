@@ -124,14 +124,14 @@ def getSectionFromComment(comment):
     The first edit to a section is formatted as "Section name [dd mon yyyy]".
     Subsequent edits are "/* Section name \* Comment here".
     If there is no section name, then return None.'''
-    a = re.match(r'\/\* (.*) \*\/.*', comment)
-    if a:
-        return a.group(1).rstrip()
-    b = re.match(r'(.*)\[[^]]*\]$', comment)
-    if b:
-        return b.group(1).rstrip()
-    else:
-        return None
+    if comment:
+        a = re.match(r'\/\* (.*) \*\/.*', comment)
+        if a:
+            return a.group(1).rstrip()
+        b = re.match(r'(.*)\[[^]]*\]$', comment)
+        if b:
+            return b.group(1).rstrip()
+    return None
 
 
 def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment):
@@ -147,7 +147,7 @@ def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment)
     pageOwnerID = getUserID(pageOwner)
     # If the page owner (call him Oscar) isn't already in the list of talkers, see if he/she has edited
     # the current users' (Carl) page
-    if userName != pageOwner and pageOwnerID not in talkers:
+    if userName != pageOwner and pageOwnerID and pageOwnerID not in talkers:
         # Get the Carl's page ID
         usersPageName = 'User talk:{}'.format(userName)
         userPageID = getPageID(usersPageName)
@@ -178,7 +178,8 @@ def getUserID(userName):
     uid = cur.fetchone()
     cur.close()
     if not uid:
-        raise Exception("User name not found!")
+        # print "User name {} not found!".format(userName)
+        return None
     return uid[0]
 
 def getPageID(pageName):
