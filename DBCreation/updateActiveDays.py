@@ -14,7 +14,7 @@ with open('config.yaml', 'r') as f:
 
 startDate = config['startDate']
 endDate = config['endDate']
-delta = config['timeDelta']
+delta = dt.timedelta(days = config['timeDelta'])
 
 
 users = nT.getActiveUsers(startDate, endDate)
@@ -26,7 +26,7 @@ with open(resultsFile, 'wb') as f:
         print user
         edits = nT.getEdits(user, startDate, endDate)
         currStart = startDate
-        currEnd = currStart + dT.timedelta(days=30)
+        currEnd = currStart + delta
         currIndex = 0
         while currIndex < len(edits):
             # Intialize list of active days
