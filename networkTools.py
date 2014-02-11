@@ -2,6 +2,7 @@ import re
 import csv
 import datetime
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from collections import defaultdict
 import yaml
 
@@ -124,14 +125,14 @@ def getSectionFromComment(comment):
     The first edit to a section is formatted as "Section name [dd mon yyyy]".
     Subsequent edits are "/* Section name \* Comment here".
     If there is no section name, then return None.'''
-    a = re.match(r'\/\* (.*) \*\/.*', comment)
-    if a:
-        return a.group(1).rstrip()
-    b = re.match(r'(.*)\[[^]]*\]$', comment)
-    if b:
-        return b.group(1).rstrip()
-    else:
-        return None
+    if comment:
+        a = re.match(r'\/\* (.*) \*\/.*', comment)
+        if a:
+            return a.group(1).rstrip()
+        b = re.match(r'(.*)\[[^]]*\]$', comment)
+        if b:
+            return b.group(1).rstrip()
+    return None
 
 
 def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment):
@@ -147,7 +148,7 @@ def getUserTalkers(userID, userName, pageID, pageName, editTime, delta, comment)
     pageOwnerID = getUserID(pageOwner)
     # If the page owner (call him Oscar) isn't already in the list of talkers, see if he/she has edited
     # the current users' (Carl) page
-    if userName != pageOwner and pageOwnerID not in talkers:
+    if userName != pageOwner and pageOwnerID and pageOwnerID not in talkers:
         # Get the Carl's page ID
         usersPageName = 'User talk:{}'.format(userName)
         userPageID = getPageID(usersPageName)
@@ -178,7 +179,8 @@ def getUserID(userName):
     uid = cur.fetchone()
     cur.close()
     if not uid:
-        raise Exception("User name not found!")
+        # print "User name {} not found!".format(userName)
+        return None
     return uid[0]
 
 def getPageID(pageName):
@@ -294,7 +296,6 @@ def networkDictToMatrix(nDict, nodeList=[], cutoff=1, dichotomize=True, directed
     0 0 0 0 1 0 1
     1 1 0 0 0 0 1
     where ij represented a directed relationship between i and j of that strength.'''
-    print nDict
     if not nodeList:
         nodeList = sorted(nDict)
     finalMatrix = []
@@ -338,3 +339,18 @@ def dichotomize(matrix, cutoff):
         for j in range(len(matrix)):
             matrix[i][j] = min(matrix[i][j],1)
     return matrix
+
+##### Statistics #########
+
+
+def getStats(user, startDate, cats):
+    '''Takes a userID, a startDate, the name of the behavior variable, and a dictionary of lists 
+    of categories. Returns a dictionary of each of the stats, with the categories condensed'''
+    cur = conn.cursor(cursor_factory = RealDictCursor)
+    cur.execute("""SELECT * from userstats WHERE user_id = %s AND start_date = %s;""",
+            (user, startDate))
+    print cur.query
+    stats = cur.fetchone()
+    cur.close()
+    print stats
+    return stats

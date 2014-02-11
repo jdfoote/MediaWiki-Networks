@@ -10,8 +10,8 @@ with open('config.yaml', 'rb') as f:
     config = yaml.load(f)
 startDate = config['startDate']
 endDate = config['endDate']
-delta = config['delta'] # Time between networks, in days
-commDelta = config['commDelta'] # Max time between communication edits.
+delta = dt.timedelta(days=config['timeDelta']) # Time between networks, in days
+commDelta = dt.timedelta(days=config['commDelta']) # Max time between communication edits.
 cutoffLevel = config['cutoffLevel']
 userTalkCats = config['userTalkCats']
 contentTalkCats = config['contentTalkCats']
