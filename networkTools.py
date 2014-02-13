@@ -6,7 +6,7 @@ from psycopg2.extras import RealDictCursor
 from collections import defaultdict
 import yaml
 
-with open('config.yaml', 'rb') as f:
+with open('./config.yaml', 'rb') as f:
     config = yaml.load(f)
 
 conn = psycopg2.connect("dbname={} user={}".format(config['database'], config['user']))
@@ -260,22 +260,21 @@ def getEditCount(userID, startTime, endTime, nonBot = True):
 def getActiveUsers(startTime, endTime):
     '''Get a list of all users who have made an edit during the given time period'''
     cur = conn.cursor()
-    cur.execute("""SELECT user_id, first_edit, last_edit from users ORDER BY user_id ASC;""")
+    cur.execute("""SELECT DISTINCT(user_id) from temp_edits WHERE edit_time > %s
+            AND edit_time < %s;""", (startTime, endTime))
     allUsers = cur.fetchall()
     cur.close()
-    activeUsers = []
-    for u in allUsers:
-        uid, firstEd, lastEd = u
-        if firstEd > endTime:
-            break
-        elif firstEd < startTime:
-            if lastEd > startTime:
-                activeUsers.append(uid)
-        else:
-            activeUsers.append(uid)
-    return activeUsers
+    if allUsers:
+        return sorted([a[0] for a in allUsers])
+    else:
+        return None
 
-
+def getUserActivityDates(userID):
+    '''Returns the first edit and last edit dates for a user'''
+    cur = conn.cursor()
+    cur.execute("""SELECT first_edit, last_edit FROM users WHERE user_id = %s;""", (userID,))
+    dates = cur.fetchone()
+    return dates
 
 def getLastEditor(pageID, editTime):
     '''Takes a pageID and an editTime, and returns the user id of the person who last edited
@@ -343,14 +342,29 @@ def dichotomize(matrix, cutoff):
 ##### Statistics #########
 
 
-def getStats(user, startDate, cats):
+def getStats(user, startDate, cats, otherStats):
     '''Takes a userID, a startDate, the name of the behavior variable, and a dictionary of lists 
     of categories. Returns a dictionary of each of the stats, with the categories condensed'''
     cur = conn.cursor(cursor_factory = RealDictCursor)
     cur.execute("""SELECT * from userstats WHERE user_id = %s AND start_date = %s;""",
             (user, startDate))
-    print cur.query
     stats = cur.fetchone()
     cur.close()
-    print stats
-    return stats
+    results = {c:0 for c in cats}
+    # For each statistic, check which category it should be in
+    for stat in stats:
+        found = False
+        if stat in otherStats:
+            found = True
+            results[stat] = stats[stat]
+            continue
+        for cat in cats:
+            if stat in cats[cat]:
+                results[cat] += stats[stat]
+                found = True
+                break
+        # Make sure there aren't surprises
+        if found == False:
+            raise Exception("{} not in {}".format(stat, cats))
+
+    return results
