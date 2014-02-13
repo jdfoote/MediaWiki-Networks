@@ -1,47 +1,56 @@
-if (!"RSiena" %in% installed.packages()) install.packages("RSiena")
-if (!"sna" %in% installed.packages()) install.packages("sna")
-if (!"network" %in% installed.packages()) install.packages("network")
+if (!"RSiena" %in% installed.packages()) install.packages(RSiena)
+if (!"sna" %in% installed.packages()) install.packages(sna)
+if (!"network" %in% installed.packages()) install.packages(network)
 require(RSiena)
 require(sna)
 require(network)
 
-net1matrix <- as.matrix(read.table("WeRelateMatrix20120906.csv"))
-net2matrix <- as.matrix(read.table("WeRelateMatrix20121013.csv"))
-net3matrix <- as.matrix(read.table("WeRelateMatrix20121201.csv"))
-allActivity <-as.matrix(read.table("allActivity.dat"))
-allActivityPercent <-as.matrix(read.table("allActivitypercentile.dat"))
-allPlaces <-as.matrix(read.table("allPlaces.dat"))
-allPlacesPercent <-as.matrix(read.table("allPlacespercentile.dat"))
-recentActivity <-as.matrix(read.table("recentOverall.dat"))
-recentPlaces <-as.matrix(read.table("placeCategories.csv"))
-v <- list("allActivity", "allActivityPercent", "allPlaces", "allPlacesPercent", "recentActivity", "recentPlaces")
-net1 <- as.network(net1matrix)
-net2 <- as.network(net2matrix)
-net3 <- as.network(net3matrix)
+dichotCutoff = 1.9
 
-net1 %v% "recentPlaces1" <- recentPlaces[,1]
-net2 %v% "recentPlaces2" <- recentPlaces[,2]
-net3 %v% "recentPlaces3" <- recentPlaces[,3]
+o1 <- event2dichot(as.matrix(read.table("2012_07_03_observation.csv")),method="absolute", thresh=dichotCutoff)
+o2 <- event2dichot(as.matrix(read.table("2012_08_02_observation.csv")),method="absolute", thresh=dichotCutoff)
+o3 <- event2dichot(as.matrix(read.table("2012_09_01_observation.csv")),method="absolute", thresh=dichotCutoff)
+lc1 <- event2dichot(as.matrix(read.table("2012_07_03_localComm.csv")),method="absolute", thresh=dichotCutoff)
+lc2 <- event2dichot(as.matrix(read.table("2012_08_02_localComm.csv")),method="absolute", thresh=dichotCutoff)
+lc3 <- event2dichot(as.matrix(read.table("2012_09_01_localComm.csv")),method="absolute", thresh=dichotCutoff)
 
-observation <- sienaNet(array(c(net1matrix, net2matrix, net3matrix),dim=c(342,342,3)))
+activeDays <- as.matrix(read.table("_behavior.csv"))
+activePeriods <- cut(activeDays, c(-1,0,5,10,20,30), labels=FALSE)
+dim(activePeriods) <- c(463,7)
+print(activePeriods)
 
-overallActivity <- varCovar(allActivityPercent)
-overallPlaceActivity <- varCovar(allPlacesPercent)
-recentAllActivity <- varCovar(recentActivity)
-recentPlaceActivity <- sienaNet(recentPlaces, type="behavior")
+simpleEdits <- as.matrix(read.table("simple_edits_attributes.csv"))[,1:2]
+
+observation <- sienaNet(array(c(o1,o2,o3),dim=c(463,463,3)))
+localCom <- sienaNet(array(c(lc1,lc2,lc3),dim=c(463,463,3)))
+
+simpleActivity <- varCovar(simpleEdits)
+daysActiveLevel <- sienaNet(activePeriods[,1:3], type="behavior")
 
 #MyData <- sienaDataCreate(observation, overallActivity, overallPlaceActivity, recentAllActivity, recentPlaceActivity)
-MyData <- sienaDataCreate(observation)
+MyData <- sienaDataCreate(observation, localCom, daysActiveLevel, simpleActivity)
 
 MyEffects <- getEffects(MyData)
 
-MyEffects<- includeEffects(MyEffects, transTrip, cycle3)
-MyEffects<-includeEffects(MyEffects,egoX,altX,simX)
-#MyEffects<-includeEffects(MyEffects,egoX,altX,simX,interaction1="recentAllActivity")
-#MyEffects<-includeEffects(MyEffects,name="recentPlaceActivity",avSim,indeg,outdeg,avAlt,interaction1="observation")
-#MyEffects<-includeEffects(MyEffects,name="recentAllActivity",avSim,indeg,outdeg,avAlt,interaction1="observation")
+print01Report(MyData, MyEffects, modelname="activityLevelTest")
 
-MyModel <-sienaModelCreate(useStdInits = TRUE, projname = "MyResults")
+# Include network effects
+MyEffects <- includeEffects(MyEffects,transTrip,cycle3,name="observation")
+MyEffects <- includeEffects(MyEffects,transTrip,cycle3,name="localCom")
+
+# Include Behavior effects
+MyEffects <- includeEffects(MyEffects,egoX,altX,simX, interaction1="daysActiveLevel", name="observation")
+MyEffects <- includeEffects(MyEffects,egoX,altX,simX, interaction1="daysActiveLevel", name="localCom")
+
+MyEffects <- includeEffects(MyEffects, name = "daysActiveLevel", avAlt, indeg, outdeg, interaction1 = "observation")
+MyEffects <- includeEffects(MyEffects, name = "daysActiveLevel", avAlt, indeg, outdeg, interaction1 = "localCom")
+
+# Covar effects
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "simpleActivity", name="observation")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "simpleActivity", name="localCom")
+
+#MyEffects <- includeEffects(MyEffects,X,name="observation",interaction1="localCom")
+MyModel <-sienaModelCreate(projname = "MyResults")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=TRUE)
 
-MyResults
+print(MyResults)
