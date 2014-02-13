@@ -4,6 +4,7 @@ DataFiles/
 .RData
 .Rhistory
 *.py[cod]
+DBCreation/results.csv
 
 # C extensions
 *.so
