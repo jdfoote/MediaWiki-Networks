@@ -7,7 +7,7 @@ import networkTools as nT
 import csv
 
 resultsFile = './results.csv'
-conn = psycopg2.connect("dbname=testdata user=kedra")
+conn = psycopg2.connect("dbname=weRelate user=jeremy")
 
 with open('../config.yaml', 'r') as f:
     config = yaml.load(f)
@@ -23,9 +23,9 @@ while currDate < endDate:
     currDate += delta
 
 ## Create table
-#cur = conn.cursor()
-#cur.execute("SELECT DISTINCT page_category from pages ORDER BY page_category ASC;")
-#categories = [x[0] for x in cur.fetchall()]
+cur = conn.cursor()
+cur.execute("SELECT DISTINCT page_category from pages ORDER BY page_category ASC;")
+categories = [x[0] for x in cur.fetchall()]
 ## Create sql-friendly descriptions
 #SQLCategories = [c.replace(' ','_') + '_edits' for c in categories]
 #createString = """CREATE TABLE userStats (
@@ -55,9 +55,14 @@ print "starting inserting"
 with open(resultsFile, 'wb') as f:
     o = csv.writer(f, delimiter = '\t')
     for user in users:
-        print "{} starting"
+        firstEdit, lastEdit = nT.getUserActivityDates(user)
+        print "{} starting".format(user)
         for currStart in dateList:
             currEnd = currStart + delta
+            # If this is before their first edit, or after their last, then it's all 0's
+            if firstEdit > currEnd or lastEdit < currStart:
+                o.writerow([user, currStart, currEnd] + [0]*(len(categories)+2))
+                continue
             edits = nT.getEdits(user, currStart, currEnd)
             # Intialize list of active days
             activeDays = []
