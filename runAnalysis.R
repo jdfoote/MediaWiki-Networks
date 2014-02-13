@@ -1,3 +1,5 @@
+#TODO: Make observation a dyadic covar (per the manual)? If so, figure out what measures to add (interaction between that and dependent var).
+
 if (!"RSiena" %in% installed.packages()) install.packages(RSiena)
 if (!"sna" %in% installed.packages()) install.packages(sna)
 if (!"network" %in% installed.packages()) install.packages(network)
