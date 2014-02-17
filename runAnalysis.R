@@ -95,7 +95,7 @@ MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "loggedActivity", 
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "communityActivity", name="activityBeh")
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "communityTalkActivity", name="activityBeh")
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "localTalkActivity", name="activityBeh")
-MyEffects <- includeTimeDummy(MyEffects, transTriads, name="localCom", timeDummy = "2")
+MyEffects <- includeTimeDummy(MyEffects, density, transTriads, name="localCom", timeDummy = "2")
 
 MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "activityBeh", interaction1="daysSinceJoining", interaction2="localCom")
 
