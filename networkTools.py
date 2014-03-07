@@ -11,6 +11,35 @@ with open('./config.yaml', 'rb') as f:
 
 conn = psycopg2.connect("dbname={} user={}".format(config['database'], config['user']))
 
+def makeCollaborationNetwork(userList, startTime, endTime, cutoff, delta):
+    '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
+    Returns an undirected, weighted network matrix, where X(ij) is
+    increased by 1 if i and j made alternating edits within the last
+    delta days, such that at least one edit by j occurred between two
+    edits made by i.'''
+    collaborationDict = {x:getCollaborators(x, startTime, endTime, delta userList) for x in userList}
+    return networkDictToMatrix(collaborationDict, cutoff = cutoff, dichotomize = False)
+
+def getCollaborators(userID, startTime, endTime, delta, userList):
+    '''Takes a userID, startTime, endTime, and userList. Returns a dictionary of the form
+    {userID1: count, ....}. Count is the number of collaborations
+    that the two users made alternating edits within the last delta days.
+    '''
+    edits = getEdits(userID, startTime, endTime)
+    collaboratorsDict = defaultdict(int)
+    for edit in edits:
+        partners = getRecentEditors(userID, pageID, editTime - delta, editTime)
+        # See if the user edited the page in the past. If so, include everyone else as collaborators.
+        collaborators = []
+        for partner in partners:
+            if observed == userID:
+                for collaborator in collaborators:
+                    collaboratorsDict[collaborator] += 1
+                    break
+            else:
+                collaborators.append(partner)
+    return collaboratorsDict
+
 def makeObservationNetwork(userList, startTime, endTime, cutoff):
     '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
     Returns a directed, binary network matrix, where X(ij) = 1 if j was the last editor of
