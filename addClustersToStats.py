@@ -11,27 +11,22 @@ with open(fullStats, 'rb') as f:
     with open(clusterResults, 'rb') as g:
         fs = csv.reader(f)
         # put header in results file
-        results = [fs.next() + ['kMeansCluster', 'GMMCluster']]
+        results = [fs.next() + ['kMeansCluster', 'GMMCluster', 'kMedCluster']]
         cr = csv.DictReader(g)
-        kMeansCount = defaultdict(int)
-        GMMCount = defaultdict(int)
-        currUser = ''
-        lastKMeans = ''
-        lastGMM = ''
         currCR = cr.next()
         for statrow in fs:
             # Check if this entry appears in the cluster results
             if currCR['start_date'] == statrow[1] and currCR['user_id'] == statrow[0]:
-                currKMeans = currCR['kClusters']
-                currGMM = currCR['mClusters']
+                currKMeans = currCR['kCluster']
+                currGMM = currCR['mCluster']
+                currKMed = currCR['kMedCluster']
                 try:
                     currCR = cr.next()
                 except:
                     continue
             else:
-                currKMeans = 0
-                currGMM = 0
-            results.append(statrow + [currKMeans, currGMM])
+                currKMeans = currGMM = currKMed = 0
+            results.append(statrow + [currKMeans, currGMM, currKMed])
 
 with open(fullStats, 'wb') as f:
     output = csv.writer(f)
