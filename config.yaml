@@ -1,11 +1,12 @@
 database: weRelate
 user: jeremy
-startDate: 2012-07-03 # Date of first edit
+startDate: 2012-06-03 # Date of first edit
 endDate: 2013-02-26 # Date of most recent edit
 timeDelta: 30 # Days between periods of interest (for creating networks or behavior summaries
-nodeList: ~/Programming/WeRelate/DataFiles/WatchAndLearn/watchAndLearnNodes.csv
-saveLocation: ~/Programming/WeRelate/DataFiles/WatchAndLearn/
+nodeList: ~/Programming/WeRelate/DataFiles/overFiveEditsStartBefore20120603.csv
+saveLocation: ~/Programming/WeRelate/DataFiles/ThesisNetworks/
 commDelta: 7 # Max time between communication edits. 
+collabDelta: 30 # Max time between collaboration edits
 cutoffLevel: 1
 userTalkCats: [User talk]
 contentTalkCats: [Person talk, Image talk, Givenname talk, Surname talk, Place talk, Source talk, Family talk, MySource talk, Repository talk]

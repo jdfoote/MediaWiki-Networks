@@ -11,14 +11,14 @@ with open('./config.yaml', 'rb') as f:
 
 conn = psycopg2.connect("dbname={} user={}".format(config['database'], config['user']))
 
-def makeCollaborationNetwork(userList, startTime, endTime, cutoff, delta):
+def makeCollaborationNetwork(userList, startTime, endTime, delta, cutoff):
     '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
     Returns an undirected, weighted network matrix, where X(ij) is
     increased by 1 if i and j made alternating edits within the last
     delta days, such that at least one edit by j occurred between two
     edits made by i.'''
-    collaborationDict = {x:getCollaborators(x, startTime, endTime, delta userList) for x in userList}
-    return networkDictToMatrix(collaborationDict, cutoff = cutoff, dichotomize = False)
+    collaborationDict = {x:getCollaborators(x, startTime, endTime, delta, userList) for x in userList}
+    return networkDictToMatrix(collaborationDict, cutoff = cutoff, dichotomize = False, directed = False)
 
 def getCollaborators(userID, startTime, endTime, delta, userList):
     '''Takes a userID, startTime, endTime, and userList. Returns a dictionary of the form
@@ -28,14 +28,15 @@ def getCollaborators(userID, startTime, endTime, delta, userList):
     edits = getEdits(userID, startTime, endTime)
     collaboratorsDict = defaultdict(int)
     for edit in edits:
-        partners = getRecentEditors(userID, pageID, editTime - delta, editTime)
+        pageID, editTime, pageCat, pageName, userName, comment = edit
+        partners = [x[0] for x in getPageEdits(pageID, editTime - delta, editTime)]
         # See if the user edited the page in the past. If so, include everyone else as collaborators.
         collaborators = []
         for partner in partners:
-            if observed == userID:
+            if partner == userID:
                 for collaborator in collaborators:
                     collaboratorsDict[collaborator] += 1
-                    break
+                break
             else:
                 collaborators.append(partner)
     return collaboratorsDict
