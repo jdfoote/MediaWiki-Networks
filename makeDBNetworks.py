@@ -5,7 +5,7 @@ import yaml
 
 networkTypes = ["observation", "localComm", "globalComm", "collaboration"]
 nodeList = '/home/jeremy/Programming/WeRelate/DataFiles/overFiveEditsStartBefore20120603.csv'
-saveLocation = '/home/jeremy/Programming/WeRelate/DataFiles/ThesisNetworks'
+saveLocation = '/home/jeremy/Programming/WeRelate/DataFiles/ThesisNetworks/'
 with open('config.yaml', 'rb') as f:
     config = yaml.load(f)
 startDate = config['startDate']
