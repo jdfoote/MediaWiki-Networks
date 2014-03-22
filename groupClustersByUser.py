@@ -2,7 +2,11 @@ import csv
 import sys
 from collections import defaultdict
 
-# Combines the full CSV of stats with the results from the clustering. The clustering results only show the months that had some activity, so a new cluster for very little activity is added.
+# Takes a stats file that has user-months, and groups it by user instead.
+# Outputs a CSV that looks like 
+# UserID  T1  T2  T3 ....
+# Where each T is the cluster the user was at that many months into their tenure.
+# The final months where they were inactive can be optionally removed
 
 fullStats = sys.argv[1]
 outputFile = sys.argv[2]
