@@ -3,6 +3,7 @@ import sys
 
 inFile = sys.argv[1]
 outFile = sys.argv[2]
+# Make sure to change this to reflect the data.
 columnsToChange = range(4, 39)
 
 with open(inFile, 'rb') as i:
