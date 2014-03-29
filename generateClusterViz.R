@@ -1,9 +1,14 @@
 library(reshape2)
 library(ggplot2)
 
-
 #clusters.mlt <- melt(clusters, id.vars="id")
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
+
+# The location of the clusters by id file
+clusterDF <- as.data.frame(read.csv('clustersByID0Trailing.csv'))
+# The minimum number of times a user has to be in a given group in order to
+# be shown in the graph for that group
+minMonths = 2
 
 makeGraph <- function(clusters){
 		clus1 <- apply(clusters, 2, function(x) {sum(x=='1', na.rm=TRUE)})
@@ -23,11 +28,10 @@ makeGraph <- function(clusters){
 
 # Stats for just those who were in each group
 
-clusterDF <- as.data.frame(read.csv('clustersByID.csv'))
 ggsave(file="../Results/allUsers.png", plot=makeGraph(clusterDF))
-cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "1", na.rm=TRUE) >= 2}),]
+cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "1", na.rm=TRUE) >= minMonths}),]
 ggsave("../Results/Role1_2+.png", makeGraph(cl1))
-cl2 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "2", na.rm=TRUE) >= 2}),]
+cl2 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "2", na.rm=TRUE) >= minMonths}),]
 ggsave("../Results/Role2_2+.png", makeGraph(cl2))
-cl3 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "3", na.rm=TRUE) >= 2}),]
+cl3 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "3", na.rm=TRUE) >= minMonths}),]
 ggsave("../Results/Role3_2+.png", makeGraph(cl3))

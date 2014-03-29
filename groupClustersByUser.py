@@ -13,7 +13,7 @@ outputFile = sys.argv[2]
 clusterType = 'kMedCluster'
 # Identify whether to remove the last inactive months, and how many to keep
 removeTrailingInactive = True
-keepInactiveCount = 3
+keepInactiveCount = 0
 
 with open(fullStats, 'rb') as f:
     fs = csv.DictReader(f)
