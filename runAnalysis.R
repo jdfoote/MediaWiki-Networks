@@ -2,12 +2,13 @@
 if (!"RSiena" %in% installed.packages()) install.packages("RSiena")
 if (!"sna" %in% installed.packages()) install.packages("sna")
 if (!"network" %in% installed.packages()) install.packages("network")
+if (!"yaml" %in% installed.packages()) install.packages("yaml")
 require(RSiena)
 require(sna)
 require(network)
 require(yaml)
 
-config <- yaml.load_file('../../Code/config.yaml')
+config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
