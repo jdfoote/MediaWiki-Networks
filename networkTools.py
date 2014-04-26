@@ -29,6 +29,9 @@ def getCollaborators(userID, startTime, endTime, delta, userList):
     collaboratorsDict = defaultdict(int)
     for edit in edits:
         pageID, editTime, pageCat, pageName, userName, comment = edit
+        # Talk pages don't count as collaboration
+        if pageCat[-4:] == 'talk':
+            continue
         partners = [x[0] for x in getPageEdits(pageID, editTime - delta, editTime)]
         # See if the user edited the page in the past. If so, include everyone else as collaborators.
         collaborators = []
