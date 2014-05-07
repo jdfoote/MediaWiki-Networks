@@ -2,6 +2,8 @@ import psycopg2
 import datetime as dt
 import csv
 
+'''This code has been replaced by the userstats table in the DB'''
+
 ignoreList = ('0','48')
 conn = psycopg2.connect("dbname=weRelate user=jeremy")
 

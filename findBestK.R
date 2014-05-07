@@ -5,7 +5,7 @@ library(mclust)
 # withinss for kmeans, and the BIC for mclust.
 kMax <- 10
 numIterations <- 100
-config <- yaml.load_file('./config.yaml')
+config <- yaml.load_file('../Code/config.yaml')
 
 stats <- read.csv('../DataFiles/userStatsRatios.csv', header = T)
 
