@@ -1,0 +1,30 @@
+Intializing
+
+Step 1: Download XML dump of Mediawiki
+Step 2: Run XMLtoCSV.py file #This might need some help
+Step 3: Import CSV into PSQL DB
+Step 4: Run monthlyReport.py # Again, ran an earlier version of this; may need updating
+
+
+
+Creating clusters
+
+Update yaml.config file
+Run statsForClustering.sql, once with the >5 condition (saved to FileA), and once with everyone (saved to FileB)
+Run statsToRatios.py on each file, to convert the edit counts to stats # Very sensitive to number of columns
+Run findBestK.R in R to find best k for kmeans and GMM. Also run pam manually to find k-mediods
+Update makeClusters.R with the best k values, then run it to create the clusters
+
+
+Cluster Stats
+
+Run groupClusterByUser.py to create a file that is users with the cluster they are in for sequential periods
+Run clusterChangeStats.py and generateClusterViz.R using the created file
+
+
+RSiena
+
+Run createNodeList.sql to create a list of nodes of interest
+Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place)
+Run filterAttributesFile.py to filter this stats file to the nodes of interest
+Modify the runAnalysis.R file to run the RSiena simulations needed

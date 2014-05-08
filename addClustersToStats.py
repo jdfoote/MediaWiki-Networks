@@ -4,6 +4,9 @@ from collections import defaultdict
 
 # Combines the full CSV of stats with the results from the clustering. The clustering results only show the months that had some activity, so a new cluster for very little activity is added.
 
+# Assumes that both files are ordered the same, and that the IDS and start dates in clusterResults
+# are a subset of those in fullStats
+
 fullStats = sys.argv[1]
 clusterResults = sys.argv[2]
 
@@ -32,16 +35,3 @@ with open(fullStats, 'wb') as f:
     output = csv.writer(f)
     for row in results:
         output.writerow(row)
-
-            # Check if we're still dealing with the same user
-#            if statrow[0] == currUser:
-#                # Check if there's an entry in cr
-#                currIndex = crIndex
-#                currKMeans = ''
-#                currGMM = ''
-#                while cr[currIndex]['user_id'] = currUser:
-#                        break
-#                    else:
-#                        currIndex += 1
-#
-
