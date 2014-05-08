@@ -1,5 +1,6 @@
 library(yaml)
 library(mclust)
+library(NbClust)
 
 # This script takes a statsRatios file, combines the stats into some broader categories, then applies both kMeans and mclust (GMM) clustering algorithms, for k = 1:kMax. It saves 2 PNG files showing the
 # withinss for kmeans, and the BIC for mclust.
@@ -21,6 +22,8 @@ stats$logged_manual_edits <- log(stats$manual_edits + 1)
 # Create a variable that holds the features we want to use for clustering
 features <- stats[,c("logged_edits", "logged_manual_edits", "active_days", "simple_total", "complex_total", "community_total", "other_total", "local_talk_total", "community_talk_total")]
 features <- scale(features)
+
+#nbCl <- NbClust(features)
 
 # Code to do clustering
 # Make graphs to find best clustering
