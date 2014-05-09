@@ -2,11 +2,21 @@ import csv
 import sys
 from collections import defaultdict
 
-# Takes a stats file that has user-months, and groups it by user instead.
-# Outputs a CSV that looks like 
-# UserID  T1  T2  T3 ....
-# Where each T is the cluster the user was at that many months into their tenure.
-# The final months where they were inactive can be optionally removed
+'''
+Takes a stats file that has user-months, and groups it by user instead.
+
+Input file format is a CSV file, that must include at least the following columns:
+user_id,all_edits,clusterType*
+
+* This is defined by a variable
+
+
+Outputs a CSV that looks like
+id,T1,T2,T3 ....
+
+Where each i,j is the cluster user i was at j months into their tenure.
+The keepInactiveCount variable determines how many of months after their last activity should be kept.
+'''
 
 fullStats = sys.argv[1]
 outputFile = sys.argv[2]
