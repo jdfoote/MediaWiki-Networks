@@ -2,6 +2,7 @@ import csv
 import sys
 from collections import defaultdict
 
+numPrevious = 2
 inputFile = sys.argv[1]
 with open(inputFile, 'rb') as f:
     userClusters = csv.reader(f)
@@ -13,9 +14,9 @@ with open(inputFile, 'rb') as f:
     for row in userClusters:
         # Remove ID
         clusters = row[1:]
-        # Start with the second cluster, then look backward at what preceded each cluster
-        for i in range(1,len(clusters)):
-            lastClus, currClus = clusters[i-1], clusters[i]
+        # Start with the numPrevious cluster, then look backward at what preceded each cluster
+        for i in range(numPrevious,len(clusters)):
+            lastClus, currClus = tuple(clusters[i-numPrevious:i]), clusters[i]
             results[(lastClus, currClus)] += 1
 
 for r in results:
