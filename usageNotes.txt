@@ -18,6 +18,7 @@ Update makeClusters.R with the best k values, then run it to create the clusters
 
 Cluster Stats
 
+Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place)
 Run groupClusterByUser.py to create a file that is users with the cluster they are in for sequential periods
 Run clusterChangeStats.py and generateClusterViz.R using the created file
 
@@ -25,6 +26,5 @@ Run clusterChangeStats.py and generateClusterViz.R using the created file
 RSiena
 
 Run createNodeList.sql to create a list of nodes of interest
-Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place)
 Run filterAttributesFile.py to filter this stats file to the nodes of interest
 Modify the runAnalysis.R file to run the RSiena simulations needed
