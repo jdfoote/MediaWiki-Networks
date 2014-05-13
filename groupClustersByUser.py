@@ -22,8 +22,24 @@ fullStats = sys.argv[1]
 outputFile = sys.argv[2]
 clusterType = 'kMedCluster'
 # Identify whether to remove the last inactive months, and how many to keep
-removeTrailingInactive = True
+removeInactive = True
 keepInactiveCount = 0
+# For the stats, this identifies the month that a user quit with "NA"
+NAForLastMonth = True
+
+def filterUser(clusterList, isActive):
+    if isActive[-1]:
+        return clusterList
+    else:
+        if removeInactive:
+            # Remove all the trailing inactive records
+            while isActive.pop() == False:
+                continue
+        # Add back the last popped item, plus the userID, plus the keepInactiveCount and the NA (if needed)
+        clusterList = clusterList[:len(isActive) + 2 + keepInactiveCount] + ['NA'] * NAForLastMonth
+        return clusterList
+
+assert filterUser(['id',1,2,3,0,0],[True,True,True,False,False]) == ['id',1,2,3,'NA']
 
 with open(fullStats, 'rb') as f:
     fs = csv.DictReader(f)
@@ -41,19 +57,13 @@ with open(fullStats, 'rb') as f:
         else:
             # If it's a new user ID, then append the old one to the results, and reset
             if currClusters:
-                if removeTrailingInactive:
-                    # Remove all the trailing inactive records
-                    while isActive.pop() == False:
-                        continue
-                    # Add back the last popped item, plus the keepInactiveCount
-                    currClusters = currClusters[:len(isActive) + 2 + keepInactiveCount]
-
+                currClusters = filterUser(currClusters, isActive)
                 allClusters.append(currClusters)
             currUser = userID
             currClusters = [userID, statrow[clusterType]]
             isActive = [edits > 0]
     # Append the final cluster, which won't have been caught.
-    allClusters.append(currClusters)
+    allClusters.append(filterUser(currClusters, isActive))
 
 with open(outputFile, 'wb') as f:
     output = csv.writer(f)

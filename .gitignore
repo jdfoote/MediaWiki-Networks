@@ -6,6 +6,7 @@ DataFiles/
 .Rhistory
 *.py[cod]
 DBCreation/results.csv
+*.swp
 
 # C extensions
 *.so
