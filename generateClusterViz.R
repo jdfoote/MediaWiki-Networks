@@ -22,6 +22,7 @@ makeGraph <- function(clusters, graphType="fill"){
 		c3 <- as.data.frame(c2)
 		c3$id = c('Low Activity Cluster', 'Central Members', 'Peripheral Experts', 'Newbies')
 		c3 <- c3[order(c(1,4,3,2)),]
+		print(c3)
 		p <- (ggplot(melt(c3, id.vars="id")) +
 		  geom_area(aes(x=variable, y=value, fill=id, group=id), position=graphType))
 		p <- p + scale_fill_manual(values=c("#69D2E7","#A7DBD8","#E0E4CC","#F38630"))
@@ -61,7 +62,6 @@ ggsave("../Results/Role2_2+.png", makeGraph(cl2))
 cl3 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:76] == "3", na.rm=TRUE) >= minMonths}),]
 ggsave("../Results/Role3_2+.png", makeGraph(cl3))
 
-
 # Calculate a version for each of the modal clusters
 Mode <- function(x) {
 		x <- x[!is.na(x)]
@@ -79,14 +79,14 @@ ggsave(paste("../Results/Role0Mode",trailingZeroes,"TrailingLine.png",sep=""), m
 mode1 <- clusterDF[modeVals == 1,]
 ggsave(paste("../Results/Role1Mode",trailingZeroes,"Trailing.png",sep=""), makeGraph(mode1))
 ggsave(paste("../Results/Role1Mode",trailingZeroes,"TrailingStack.png",sep=""), makeGraph(mode1,"stack"))
-ggsave(paste("../Results/Role1Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode0))
+ggsave(paste("../Results/Role1Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode1))
 
 mode2 <- clusterDF[modeVals == 2,]
 ggsave(paste("../Results/Role2Mode",trailingZeroes,"Trailing.png",sep=""), makeGraph(mode2))
 ggsave(paste("../Results/Role2Mode",trailingZeroes,"TrailingStack.png",sep=""), makeGraph(mode2,"stack"))
-ggsave(paste("../Results/Role2Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode0))
+ggsave(paste("../Results/Role2Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode2))
 
 mode3 <- clusterDF[modeVals == 3,]
 ggsave(paste("../Results/Role3Mode",trailingZeroes,"Trailing.png",sep=""), makeGraph(mode3))
 ggsave(paste("../Results/Role3Mode",trailingZeroes,"TrailingStack.png",sep=""), makeGraph(mode3,"stack"))
-ggsave(paste("../Results/Role3Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode0))
+ggsave(paste("../Results/Role3Mode",trailingZeroes,"TrailingLine.png",sep=""), makeLineGraph(mode3))
