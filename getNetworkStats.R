@@ -1,12 +1,15 @@
 if (!"sna" %in% installed.packages()) install.packages("sna")
 if (!"network" %in% installed.packages()) install.packages("network")
 if (!"yaml" %in% installed.packages()) install.packages("yaml")
-require(RSiena)
+if (!"igraph" %in% installed.packages()) install.packages("igraph")
+#require(RSiena)
+require(igraph)
 require(sna)
 require(network)
 require(yaml)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
+attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile.csv'))
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
@@ -57,11 +60,28 @@ c7 <- event2dichot(as.matrix(read.table("ThesisNetworks/2012_12_30_collaboration
 fullObs <- event2dichot(o0 + o1 + o2 + o3 + o4 + o5 + o6 + o7, method="absolute", thresh=0.9)
 fullLocal <- event2dichot(lc0 + lc1 + lc2 + lc3 + lc4 + lc5 + lc6 + lc7, method="absolute", thresh=0.9)
 fullGlobal <- event2dichot(gc0 + gc1 + gc2 + gc3 + gc4 + gc5 + gc6 + gc7, method="absolute", thresh=0.9)
-fullColab <- event2dichot(c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7, method="absolute", thresh=0.9)
+fullCollab <- event2dichot(c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7, method="absolute", thresh=0.9)
 
-# Calculate centralities, and add to features
+# Calculate centrality, degree, and clustering coefficient and add to features
 
-obsEigCent <- evcent(fullObs)
-lcEigCent <- evcent(fullLocal)
-gcEigCent <- evcent(fullGlobal)
-cEigCent <- evcent(fullCollab)
+attributes$obsEigCent <- evcent(fullObs)
+attributes$lcEigCent <- evcent(fullLocal)
+attributes$gcEigCent <- evcent(fullGlobal)
+attributes$cEigCent <- evcent(fullCollab)
+
+attributes$obsDeg <- degree(fullObs)
+attributes$lcDeg <- evcent(fullLocal)
+attributes$gcDeg <- evcent(fullGlobal)
+attributes$cDeg <- evcent(fullCollab)
+
+# Create igraph objects.
+obsIgraph = graph.adjacency(fullObs)
+lcIgraph = graph.adjacency(fullLocal)
+gcIgraph = graph.adjacency(fullGlobal)
+cIgraph = graph.adjacency(fullCollab)
+
+attributes$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
+attributes$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
+attributes$gcClus <- transitivity(gcIgraph, type="local", isolates="zero")
+attributes$cClus <- transitivity(cIgraph, type="local", isolates="zero")
+
