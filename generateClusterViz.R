@@ -36,8 +36,8 @@ makeLineGraph <- function(clusters, includeLA=TRUE){
 		if (includeLA == FALSE){
 				plotData <- plotData[plotData$Role != 'Low Activity',]
 		}
-		p <- ggplot(plotData, aes(x=Time, y=Freq, group=Role, color = Role)) + geom_path(alpha=0.5)
-		#p <- p + scale_fill_manual(values=c("#69D2E7","#A7DBD8","#E0E4CC","#F38630"))
+		p <- ggplot(plotData, aes(x=Time, y=Freq, group=Role, color = Role)) + geom_line(alpha=0.5)
+		p <- p + scale_color_manual(values=c("#69D2E7","#A7DBD8","#E0E4CC","#F38630"))
 		p <- p + scale_x_discrete(breaks=NULL, name="Time since joining") + ylab("Number of users in each cluster")
 		return(p)
 }
