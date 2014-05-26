@@ -3,15 +3,14 @@ if (!"network" %in% installed.packages()) install.packages("network")
 if (!"yaml" %in% installed.packages()) install.packages("yaml")
 if (!"igraph" %in% installed.packages()) install.packages("igraph")
 #require(RSiena)
-require(igraph)
 require(sna)
 require(network)
 require(yaml)
 require(Hmisc)
+require(igraph)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile.csv'))
-modes<-load("modeVals.Rda")
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
@@ -70,22 +69,22 @@ netStats <- subset(modeOut, id %in% attributes$user_id)
 
 # Calculate centrality, degree, and clustering coefficient and add to features
 
-netStats$obsEigCent <- evcent(fullObs)
-netStats$lcEigCent <- evcent(fullLocal)
-netStats$gcEigCent <- evcent(fullGlobal)
-netStats$cEigCent <- evcent(fullCollab)
-
-netStats$obsDeg <- degree(fullObs)
-netStats$lcDeg <- degree(fullLocal)
-netStats$gcDeg <- degree(fullGlobal)
-netStats$cDeg <- degree(fullCollab)
-netStats$fullIsolates <- (netStats$obsDeg + netStats$lcDeg + netStats$gcDeg + netStats$cDeg) == 0
-
 # Create igraph objects.
 obsIgraph = graph.adjacency(fullObs)
 lcIgraph = graph.adjacency(fullLocal)
 gcIgraph = graph.adjacency(fullGlobal)
 cIgraph = graph.adjacency(fullCollab)
+
+netStats$obsDeg <- degree(obsIgraph)
+netStats$lcDeg <- degree(lcIgraph)
+netStats$gcDeg <- degree(gcIgraph)
+netStats$cDeg <- degree(cIgraph)
+
+netStats$obsEigCent <- evcent(obsIgraph)
+netStats$lcEigCent <- evcent(lcIgraph)
+netStats$gcEigCent <- evcent(gcIgraph)
+netStats$cEigCent <- evcent(cIgraph)
+
 
 netStats$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
 netStats$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
@@ -95,8 +94,19 @@ netStats$cClus <- transitivity(cIgraph, type="local", isolates="zero")
 clusterMeans <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=mean)
 clusterMedians <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=median)
 
-
 # These provide the basis for the tables, which I cleaned up manually
 latex(format.df(clusterMeans, dec=3), file="networkMeans.tex", title="Cluster Network Means")
 latex(format.df(clusterMedians, dec=3), file="networkMedians.tex", title="Cluster Network Medians")
 
+# Community detection
+
+# Start by removing isolates
+obsIgraph <- delete.vertices(obsIgraph, which(degree(obsIgraph) < 1))
+lcIgraph <- delete.vertices(lcIgraph, which(degree(lcIgraph) < 1))
+obsComms <- walktrap.community(obsIgraph)
+lcComms <- walktrap.community(lcIgraph)
+gcComms <- walktrap.community(gcIgraph)
+cComms <- walktrap.community(cIgraph)
+
+plot(lcComms, lcIgraph,
+	 layout=layout.fruchterman.reingold)
