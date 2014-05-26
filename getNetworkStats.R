@@ -3,10 +3,10 @@ if (!"network" %in% installed.packages()) install.packages("network")
 if (!"yaml" %in% installed.packages()) install.packages("yaml")
 if (!"igraph" %in% installed.packages()) install.packages("igraph")
 #require(RSiena)
-require(igraph)
 require(sna)
 require(network)
 require(yaml)
+require(igraph)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile.csv'))
@@ -64,24 +64,37 @@ fullCollab <- event2dichot(c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7, method="absolu
 
 # Calculate centrality, degree, and clustering coefficient and add to features
 
-attributes$obsEigCent <- evcent(fullObs)
-attributes$lcEigCent <- evcent(fullLocal)
-attributes$gcEigCent <- evcent(fullGlobal)
-attributes$cEigCent <- evcent(fullCollab)
-
-attributes$obsDeg <- degree(fullObs)
-attributes$lcDeg <- evcent(fullLocal)
-attributes$gcDeg <- evcent(fullGlobal)
-attributes$cDeg <- evcent(fullCollab)
-
 # Create igraph objects.
 obsIgraph = graph.adjacency(fullObs)
 lcIgraph = graph.adjacency(fullLocal)
 gcIgraph = graph.adjacency(fullGlobal)
 cIgraph = graph.adjacency(fullCollab)
 
+attributes$obsDeg <- degree(obsIgraph)
+attributes$lcDeg <- degree(lcIgraph)
+attributes$gcDeg <- degree(gcIgraph)
+attributes$cDeg <- degree(cIgraph)
+
+attributes$obsEigCent <- evcent(obsIgraph)
+attributes$lcEigCent <- evcent(lcIgraph)
+attributes$gcEigCent <- evcent(gcIgraph)
+attributes$cEigCent <- evcent(cIgraph)
+
 attributes$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
 attributes$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
 attributes$gcClus <- transitivity(gcIgraph, type="local", isolates="zero")
 attributes$cClus <- transitivity(cIgraph, type="local", isolates="zero")
 
+
+# Community detection
+
+# Start by removing isolates
+obsIgraph <- delete.vertices(obsIgraph, which(degree(obsIgraph) < 1))
+lcIgraph <- delete.vertices(lcIgraph, which(degree(lcIgraph) < 1))
+obsComms <- walktrap.community(obsIgraph)
+lcComms <- walktrap.community(lcIgraph)
+gcComms <- walktrap.community(gcIgraph)
+cComms <- walktrap.community(cIgraph)
+
+plot(lcComms, lcIgraph,
+	 layout=layout.fruchterman.reingold)
