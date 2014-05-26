@@ -69,6 +69,9 @@ Mode <- function(x) {
 }
 
 modeVals <- apply(clusterDF[,2:76], 1, function(x) Mode(x))
+modeOut <- as.data.frame(clusterDF[1])
+modeOut$mode <- modeVals
+save(modeOut, file='modeVals.Rda')
 
 mode0 <- clusterDF[modeVals == "Low Activity",]
 ggsave(paste("../Results/Role0Mode",trailingZeroes,"Trailing.pdf",sep=""), makeGraph(mode0))
