@@ -7,9 +7,11 @@ require(igraph)
 require(sna)
 require(network)
 require(yaml)
+require(Hmisc)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile.csv'))
+modes<-load("modeVals.Rda")
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
@@ -62,17 +64,22 @@ fullLocal <- event2dichot(lc0 + lc1 + lc2 + lc3 + lc4 + lc5 + lc6 + lc7, method=
 fullGlobal <- event2dichot(gc0 + gc1 + gc2 + gc3 + gc4 + gc5 + gc6 + gc7, method="absolute", thresh=0.9)
 fullCollab <- event2dichot(c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7, method="absolute", thresh=0.9)
 
+# Get the modes for each of the users in this dataset
+load("modeVals.Rda")
+netStats <- subset(modeOut, id %in% attributes$user_id)
+
 # Calculate centrality, degree, and clustering coefficient and add to features
 
-attributes$obsEigCent <- evcent(fullObs)
-attributes$lcEigCent <- evcent(fullLocal)
-attributes$gcEigCent <- evcent(fullGlobal)
-attributes$cEigCent <- evcent(fullCollab)
+netStats$obsEigCent <- evcent(fullObs)
+netStats$lcEigCent <- evcent(fullLocal)
+netStats$gcEigCent <- evcent(fullGlobal)
+netStats$cEigCent <- evcent(fullCollab)
 
-attributes$obsDeg <- degree(fullObs)
-attributes$lcDeg <- evcent(fullLocal)
-attributes$gcDeg <- evcent(fullGlobal)
-attributes$cDeg <- evcent(fullCollab)
+netStats$obsDeg <- degree(fullObs)
+netStats$lcDeg <- degree(fullLocal)
+netStats$gcDeg <- degree(fullGlobal)
+netStats$cDeg <- degree(fullCollab)
+netStats$fullIsolates <- (netStats$obsDeg + netStats$lcDeg + netStats$gcDeg + netStats$cDeg) == 0
 
 # Create igraph objects.
 obsIgraph = graph.adjacency(fullObs)
@@ -80,8 +87,16 @@ lcIgraph = graph.adjacency(fullLocal)
 gcIgraph = graph.adjacency(fullGlobal)
 cIgraph = graph.adjacency(fullCollab)
 
-attributes$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
-attributes$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
-attributes$gcClus <- transitivity(gcIgraph, type="local", isolates="zero")
-attributes$cClus <- transitivity(cIgraph, type="local", isolates="zero")
+netStats$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
+netStats$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
+netStats$gcClus <- transitivity(gcIgraph, type="local", isolates="zero")
+netStats$cClus <- transitivity(cIgraph, type="local", isolates="zero")
+
+clusterMeans <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=mean)
+clusterMedians <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=median)
+
+
+# These provide the basis for the tables, which I cleaned up manually
+latex(format.df(clusterMeans, dec=3), file="networkMeans.tex", title="Cluster Network Means")
+latex(format.df(clusterMedians, dec=3), file="networkMedians.tex", title="Cluster Network Medians")
 
