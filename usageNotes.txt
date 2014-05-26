@@ -21,6 +21,8 @@ Cluster Stats
 Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place)
 Run groupClusterByUser.py to create a file that is users with the cluster they are in for sequential periods
 Run clusterChangeStats.py and generateClusterViz.R using the created file
+This will create a "modeVals.Rda" file in the working directory, which is then used for network stats.
+Run getNetworkStats.R, which creates the overall networks, and some network statistics for the modal values of each user.
 
 
 RSiena
