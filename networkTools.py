@@ -329,7 +329,7 @@ def networkDictToMatrix(nDict, nodeList=[], cutoff=1, dichotomize=True, directed
     1 1 0 0 0 0 1
     where ij represented a directed relationship between i and j of that strength.'''
     if not nodeList:
-        nodeList = sorted(nDict)
+        nodeList = sorted(nDict.keys())
     finalMatrix = []
     for i in nodeList:
         iRow = []
