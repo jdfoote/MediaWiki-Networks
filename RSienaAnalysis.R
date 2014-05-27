@@ -19,7 +19,7 @@ firstTime = 3
 lastTime = 6
 numWaves = 8
 # Number of nodes
-nodeCount = 267
+nodeCount = 161
 
 o0 <- event2dichot(as.matrix(read.table("2012_06_03_observation.csv")),method="absolute", thresh=dichotCutoff)
 o1 <- event2dichot(as.matrix(read.table("2012_07_03_observation.csv")),method="absolute", thresh=dichotCutoff)
@@ -59,7 +59,7 @@ globCom <- array(c(gc0,gc1,gc2,gc3,gc4,gc5,gc6,gc7),c(nodeCount, nodeCount, numW
 collab <- array(c(c0,c1,c2,c3,c4,c5,c6,c7),c(nodeCount, nodeCount, numWaves))
 
 
-Attributes <- as.data.frame(read.csv('../RSienaAttributeFile.csv', header = TRUE))
+Attributes <- as.data.frame(read.csv('../RSienaAttributeFile2.csv', header = TRUE))
 # Sort by date, then userID
 Attributes <- Attributes[with(Attributes, order(start_date, user_id)),]
 # Create dummy variables for clusters

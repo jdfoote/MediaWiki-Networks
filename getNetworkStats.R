@@ -10,7 +10,7 @@ require(Hmisc)
 require(igraph)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
-attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile.csv'))
+attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile2.csv'))
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
