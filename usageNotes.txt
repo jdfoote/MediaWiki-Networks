@@ -22,11 +22,15 @@ Run addClustersToStats.py to add all of the cluster results to the full stats fi
 Run groupClusterByUser.py to create a file that is users with the cluster they are in for sequential periods
 Run clusterChangeStats.py and generateClusterViz.R using the created file
 This will create a "modeVals.Rda" file in the working directory, which is then used for network stats.
+
+Network Stats
+
+Run createNodeList.sql to create a list of nodes of interest
+Run filterAttributesFile.py to filter this stats file to the nodes of interest (takes statsFile, nodesList, and outputFile as parameters)
+Run makeDBNetworks.py to create networks for the given nodes.
 Run getNetworkStats.R, which creates the overall networks, and some network statistics for the modal values of each user.
 
 
 RSiena
 
-Run createNodeList.sql to create a list of nodes of interest
-Run filterAttributesFile.py to filter this stats file to the nodes of interest
 Modify the runAnalysis.R file to run the RSiena simulations needed
