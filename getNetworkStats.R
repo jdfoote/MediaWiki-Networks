@@ -16,12 +16,12 @@ attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAtt
 # in matrix
 dichotCutoff = 1.9
 # Index of first date to include
-firstTime = 2
+firstTime = 1
 # Index of last date to include
 lastTime = 8
 numWaves = 8
 # Number of nodes
-nodeCount = 267
+nodeCount = 161
 
 o0 <- event2dichot(as.matrix(read.table("ThesisNetworks/2012_06_03_observation.csv")),method="absolute", thresh=dichotCutoff)
 o1 <- event2dichot(as.matrix(read.table("ThesisNetworks/2012_07_03_observation.csv")),method="absolute", thresh=dichotCutoff)
@@ -66,6 +66,11 @@ fullCollab <- event2dichot(c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7, method="absolu
 # Get the modes for each of the users in this dataset
 load("modeVals.Rda")
 netStats <- subset(modeOut, id %in% attributes$user_id)
+# Create a color vector, based on role
+netStats$color[netStats$mode=='Low Activity'] <- "gray"
+netStats$color[netStats$mode=='Central Members'] <- "lightblue"
+netStats$color[netStats$mode=='Peripheral Experts'] <- "lightgreen"
+netStats$color[netStats$mode=='Newbies'] <- "orange"
 
 # Calculate centrality, degree, and clustering coefficient and add to features
 
@@ -80,10 +85,10 @@ netStats$lcDeg <- degree(lcIgraph)
 netStats$gcDeg <- degree(gcIgraph)
 netStats$cDeg <- degree(cIgraph)
 
-netStats$obsEigCent <- evcent(obsIgraph)
-netStats$lcEigCent <- evcent(lcIgraph)
-netStats$gcEigCent <- evcent(gcIgraph)
-netStats$cEigCent <- evcent(cIgraph)
+netStats$obsEigCent <- evcent(obsIgraph)$vector
+netStats$lcEigCent <- evcent(lcIgraph)$vector
+netStats$gcEigCent <- evcent(gcIgraph)$vector
+netStats$cEigCent <- evcent(cIgraph)$vector
 
 
 netStats$obsClus <- transitivity(obsIgraph, type="local", isolates="zero")
@@ -91,22 +96,47 @@ netStats$lcClus <- transitivity(lcIgraph, type="local", isolates="zero")
 netStats$gcClus <- transitivity(gcIgraph, type="local", isolates="zero")
 netStats$cClus <- transitivity(cIgraph, type="local", isolates="zero")
 
-clusterMeans <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=mean)
-clusterMedians <- aggregate(netStats[,3:15], by=list(netStats$mode), FUN=median)
+clusterMeans <- aggregate(netStats[,4:15], by=list(netStats$mode), FUN=mean)
+clusterMedians <- aggregate(netStats[,4:15], by=list(netStats$mode), FUN=median)
 
+meanData <- as.data.frame(t(clusterMeans[,2:13]))
+names(meanData) <- clusterMeans$Group.1
+medianData <- as.data.frame(t(clusterMedians[,2:13]))
+names(medianData) <- clusterMedians$Group.1
 # These provide the basis for the tables, which I cleaned up manually
-latex(format.df(clusterMeans, dec=3), file="networkMeans.tex", title="Cluster Network Means")
-latex(format.df(clusterMedians, dec=3), file="networkMedians.tex", title="Cluster Network Medians")
+latex(format.df(meanData, dec=3), file="networkMeans.tex", title="Cluster Network Means")
+latex(format.df(medianData, dec=3), file="networkMedians.tex", title="Cluster Network Medians")
+
+# Number of users in each role, to be added to tables
+print(table(netStats$mode))
 
 # Community detection
 
-# Start by removing isolates
-obsIgraph <- delete.vertices(obsIgraph, which(degree(obsIgraph) < 1))
-lcIgraph <- delete.vertices(lcIgraph, which(degree(lcIgraph) < 1))
-obsComms <- walktrap.community(obsIgraph)
-lcComms <- walktrap.community(lcIgraph)
-gcComms <- walktrap.community(gcIgraph)
-cComms <- walktrap.community(cIgraph)
 
-plot(lcComms, lcIgraph,
-	 layout=layout.fruchterman.reingold)
+makeCommunityPlot <-function(g, fname){
+		# Get color from netstats
+		V(g)$color <- netStats$color
+		V(g)$id <- netStats$id
+		# Delete isolates
+		g <- delete.vertices(g, which(degree(g) < 1))
+		# Size by eigenvector centrality
+		V(g)$size <- evcent(g)$vector*15
+		# Create community vector
+		communityPartitions <- walktrap.community(g)
+		# Select where to save
+		pdf(fname)
+		l <- layout.fruchterman.reingold(g,niter=500,area=vcount(g)^2.3,repulserad=vcount(g)^2.8)
+		l <- layout.fruchterman.reingold(g)
+		pl <-plot(communityPartitions, g,
+				  layout=layout.fruchterman.reingold,
+				  vertex.label = V(g)$id,
+				  vertex.label.cex=1,
+				  vertex.color <- V(g)$color,
+				  edge.arrow.size=.3)
+		dev.off()
+}
+
+makeCommunityPlot(lcIgraph, 'localComPlot.pdf')
+makeCommunityPlot(gcIgraph, 'globalComPlot.pdf')
+makeCommunityPlot(cIgraph, 'collabPlot.pdf')
+
