@@ -12,16 +12,17 @@ Creating clusters
 Update yaml.config file
 Run statsForClustering.sql, once with the >5 condition (saved to FileA), and once with everyone (saved to FileB)
 Run statsToRatios.py on each file, to convert the edit counts to stats # Very sensitive to number of columns
-Run findBestK.R in R to find best k for kmeans and GMM. Also run pam manually to find k-mediods
+Using the filtered file (FileA), run findBestK.R in R to find best k for kmeans and GMM. Also run pam manually to find k-mediods
 Update makeClusters.R with the best k values, then run it to create the clusters
 
 
 Cluster Stats
 
-Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place)
+Run addClustersToStats.py to add all of the cluster results to the full stats file (modified in place). This also adds cluster "0" for every measure where they weren't active.
 Run groupClusterByUser.py to create a file that is users with the cluster they are in for sequential periods
 Run clusterChangeStats.py and generateClusterViz.R using the created file
-This will create a "modeVals.Rda" file in the working directory, which is then used for network stats.
+If desired, create a reversed version of the stats by running reverseClusterCSV, and then rerunning generateClusterViz.
+The generateClusterViz.R program will create a "modeVals.Rda" file in the working directory, which is then used for network stats, so make sure that you run it with the groupClusterByUser settings the way you want them for the network stats.
 
 Network Stats
 
