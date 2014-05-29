@@ -14,7 +14,7 @@ config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 # in matrix
 dichotCutoff = 1.9
 # Index of first date to include
-firstTime = 1
+firstTime = 5
 # Index of last date to include
 lastTime = 8
 numWaves = 8
@@ -116,53 +116,53 @@ cluster0 <- makeVarCovar(clust0)
 cluster2 <- makeVarCovar(clust2)
 cluster3 <- makeVarCovar(clust3)
 
-MyData <- sienaDataCreate(localCom, cluster0, cluster1, cluster2, cluster3, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining)
+MyData <- sienaDataCreate(globalCom, cluster0, cluster1, cluster2, cluster3, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining)
 
 MyEffects <- getEffects(MyData)
 
 print01Report(MyData, MyEffects, modelname="clusterTest")
 
 # Include network effects
-#MyEffects <- includeEffects(MyEffects,transTrip,name="localCom")
-#MyEffects <- includeEffects(MyEffects,outRate, name="localCom",type="rate")
-MyEffects <- includeEffects(MyEffects, transTriads, balance,name="localCom")
+#MyEffects <- includeEffects(MyEffects,transTrip,name="globalCom")
+#MyEffects <- includeEffects(MyEffects,outRate, name="globalCom",type="rate")
+MyEffects <- includeEffects(MyEffects, transTriads, balance,name="globalCom")
 
 # Include Behavior effects
-MyEffects <- includeEffects(MyEffects,simX, interaction1="cluster1", name="localCom","creation")
+MyEffects <- includeEffects(MyEffects,simX, interaction1="cluster1", name="globalCom","creation")
 
-MyEffects <- includeEffects(MyEffects, name = "cluster1", avAlt, interaction1 = "localCom")
-#MyEffects <- includeEffects(MyEffects, name = "cluster2", avAlt, interaction1 = "localCom")
-#MyEffects <- includeEffects(MyEffects, name = "cluster0", avAlt, interaction1 = "localCom")
+MyEffects <- includeEffects(MyEffects, name = "cluster1", avAlt, interaction1 = "globalCom")
+#MyEffects <- includeEffects(MyEffects, name = "cluster2", avAlt, interaction1 = "globalCom")
+#MyEffects <- includeEffects(MyEffects, name = "cluster0", avAlt, interaction1 = "globalCom")
 
 # Covar effects
-#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "logged_edits", name="localCom")
-MyEffects <- includeEffects(MyEffects,egoXAltX,simX, interaction1 = "daysSinceJoining", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "loggedActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "complex_total", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "complexActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="logged_edits", name="localCom")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="daysSinceJoining", name="localCom")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="loggedActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="activityBeh", name="localCom")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="activityBeh", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="localCom")
-#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="localCom")
+#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "logged_edits", name="globalCom")
+MyEffects <- includeEffects(MyEffects,egoXAltX,simX, interaction1 = "daysSinceJoining", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "loggedActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "complex_total", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "complexActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="logged_edits", name="globalCom")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="daysSinceJoining", name="globalCom")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="loggedActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="activityBeh", name="globalCom")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="activityBeh", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "communityTalkActivity", name="globalCom")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="globalCom")
 # Effects on behavior
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "complexActivity", name="activityBeh")
 MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="cluster1")
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "logged_edits", name="cluster1")
-MyEffects <- includeTimeDummy(MyEffects, density, name="localCom", timeDummy = "7")
+#MyEffects <- includeTimeDummy(MyEffects, density, name="globalCom", timeDummy = "7")
 #MyEffects <- includeTimeDummy(MyEffects, avAlt, name="cluster1", timeDummy = "7")
 
-#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="localCom")
+#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="globalCom")
 
-#MyEffects <- includeEffects(MyEffects,X,name="localCom",interaction1="localCom")
-MyModel <-sienaModelCreate(projname = "localComTest")
+#MyEffects <- includeEffects(MyEffects,X,name="globalCom",interaction1="localCom")
+MyModel <-sienaModelCreate(projname = "globalComTest")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=FALSE)
 
-siena.table(MyResults, type="latex", file="localComResults.tex", sig=TRUE)
+siena.table(MyResults, type="latex", file="globalComResults.tex", sig=TRUE)
