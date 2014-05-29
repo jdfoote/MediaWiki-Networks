@@ -28,6 +28,8 @@ keepInactiveCount = 0
 NAForLastMonth = True
 
 def filterUser(clusterList, isActive):
+    # If the user was active in the last month, then they haven't quit, and inactive
+    # months don't need to be removed
     if isActive[-1]:
         return clusterList
     else:
