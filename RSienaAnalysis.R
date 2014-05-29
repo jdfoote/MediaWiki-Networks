@@ -14,9 +14,9 @@ config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 # in matrix
 dichotCutoff = 1.9
 # Index of first date to include
-firstTime = 2
+firstTime = 1
 # Index of last date to include
-lastTime = 5
+lastTime = 8
 numWaves = 8
 # Number of nodes
 nodeCount = 161
@@ -136,7 +136,7 @@ MyEffects <- includeEffects(MyEffects, name = "cluster1", avAlt, interaction1 = 
 
 # Covar effects
 #MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "logged_edits", name="observation")
-MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "daysSinceJoining", name="observation")
+MyEffects <- includeEffects(MyEffects,egoX, interaction1 = "daysSinceJoining", name="observation")
 #MyEffects <- includeEffects(MyEffects,simX, interaction1 = "loggedActivity", name="observation")
 #MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "complex_total", name="observation")
 #MyEffects <- includeEffects(MyEffects,simX, interaction1 = "complexActivity", name="observation")
@@ -156,7 +156,7 @@ MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "daysSinceJoinin
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "complexActivity", name="activityBeh")
 MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="cluster1")
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "logged_edits", name="cluster1")
-#MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "3")
+MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "5")
 
 #MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="localCom")
 
@@ -164,4 +164,4 @@ MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining"
 MyModel <-sienaModelCreate(projname = "observationTest")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=FALSE)
 
-siena.table(MyResults, type="latex", file="RSienaResults.tex", sig=TRUE)
+siena.table(MyResults, type="latex", file="observationResults.tex", sig=TRUE)
