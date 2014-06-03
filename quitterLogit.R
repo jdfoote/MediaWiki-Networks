@@ -1,7 +1,7 @@
 library(stargazer)
 # I randomly selected a month to focus on. We will look at the activity in the previous 3 months
 # to see what predicts quitting in this month.
-focusMonth = as.Date('2012-12-30')
+focusMonth = as.Date('2013-01-29')
 d <- as.data.frame(read.csv("~/Programming/WeRelate/DataFiles/allUserStatsRatios0Trailing.csv"))
 dSmall <- d[c(1,3,41,44,45)]
 dSmall$kMedCluster[dSmall$kMedCluster == '0'] <- 'LowActivity'
