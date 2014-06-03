@@ -14,11 +14,11 @@ config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 
 # Determines how to dichotomize. Only values greater than dichotCutoff will be included
 # in matrix
-dichotCutoff = 2.9
+dichotCutoff = 1.9
 # Index of first date to include
 firstTime = 1
 # Index of last date to include
-lastTime = 8
+lastTime = 4
 numWaves = 8
 # Number of nodes
 nodeCount = 161
@@ -35,7 +35,7 @@ globCom <- array(sapply(filesToImport[seq(2,length(filesToImport),4)], importNet
 locCom <- array(sapply(filesToImport[seq(3,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 obs <- array(sapply(filesToImport[seq(4,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves))
 allNets <- collab + globCom + locCom + obs
-allNets[allNets > 1] <- 1
+allNets[allNets > 0] <- 1
 
 Attributes <- as.data.frame(read.csv('../RSienaAttributeFile2.csv', header = TRUE))
 # Sort by date, then userID
@@ -84,8 +84,8 @@ calcEmbeddedness <- function(netArray){
 
 
 # MAKE SURE TO CHANGE THE NETWORK THIS APPLIES TO
-eigenvectorCentrality <- makeVarCovar(apply(obs,MARGIN=3,FUN=sna::evcent))
-embeddedness <- makeVarCovar(calcEmbeddedness(obs))
+eigenvectorCentrality <- makeVarCovar(apply(allNets,MARGIN=3,FUN=sna::evcent))
+embeddedness <- makeVarCovar(calcEmbeddedness(allNets))
 
 # Create dependent variables
 observation <- sienaNet(obs[,,firstTime:lastTime])
@@ -103,35 +103,36 @@ cluster1 <- makeVarCovar(clust1)
 cluster2 <- makeVarCovar(clust2)
 cluster3 <- makeVarCovar(clust3)
 
-MyData <- sienaDataCreate(observation, cluster0, cluster1, cluster2, cluster3, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining, eigenvectorCentrality, embeddedness)
+MyData <- sienaDataCreate(allInteractions, cluster0, cluster1, cluster2, cluster3, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining, eigenvectorCentrality, embeddedness)
 
 MyEffects <- getEffects(MyData)
 
 print01Report(MyData, MyEffects, modelname="quittingAnalysis")
 
 # Include network effects
-#MyEffects <- includeEffects(MyEffects,transTrip,name="observation")
-#MyEffects <- includeEffects(MyEffects,outRate, name="observation",type="rate")
-MyEffects <- includeEffects(MyEffects, transTriads, balance,name="observation")
+#MyEffects <- includeEffects(MyEffects,transTrip,name="allInteractions")
+#MyEffects <- includeEffects(MyEffects,outRate, name="allInteractions",type="rate")
+MyEffects <- includeEffects(MyEffects, transTrip, balance,name="allInteractions")
 
 # Include Behavior effects
-MyEffects <- includeEffects(MyEffects,simX, interaction1="cluster0", name="observation")
-MyEffects <- includeEffects(MyEffects, name = "cluster0", avAlt, interaction1 = "observation")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1="cluster0", name="allInteractions")
+#MyEffects <- includeEffects(MyEffects, name = "cluster0", avAlt, interaction1 = "allInteractions")
 
 # Covar effects
-#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "complex_total", name="observation")
-#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="logged_edits", name="observation")
+#MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "complex_total", name="allInteractions")
+#MyEffects <- includeEffects(MyEffects, RateX, type="rate", interaction1="logged_edits", name="allInteractions")
 
 # Effects on behavior
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="cluster1")
 MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "eigenvectorCentrality", name="cluster0")
 MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "embeddedness", name="cluster0")
-#MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "5")
+MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "cluster1", name="cluster0")
+#MyEffects <- includeTimeDummy(MyEffects, density, name="allInteractions", timeDummy = "4,5")
 
-#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="observation")
+#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="allInteractions")
 
-#MyEffects <- includeEffects(MyEffects,X,name="observation",interaction1="observation")
-MyModel <-sienaModelCreate(projname = "observationQuitting")
+#MyEffects <- includeEffects(MyEffects,X,name="allInteractions",interaction1="allInteractions")
+MyModel <-sienaModelCreate(projname = "allInteractionsQuitting")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=FALSE,returnDeps=TRUE)
 
-siena.table(MyResults, type="latex", file="observationQuittingResults.tex", sig=TRUE)
+siena.table(MyResults, type="latex", file="allInteractionsQuittingResults.tex", sig=TRUE)
