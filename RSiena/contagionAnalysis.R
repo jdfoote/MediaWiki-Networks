@@ -74,15 +74,15 @@ globalCom <- sienaNet(globCom[,,firstTime:lastTime])
 collaboration <- sienaNet(collab[,,firstTime:lastTime])
 allInteractions <- sienaNet(totInt[,,firstTime:lastTime])
 
-cluster0 <- sienaNet(clust0[,firstTime:lastTime],type="behavior")
-cluster1 <- sienaNet(clust1[,firstTime:lastTime],type="behavior")
-cluster2 <- sienaNet(clust2[,firstTime:lastTime],type="behavior")
-cluster3 <- sienaNet(clust3[,firstTime:lastTime],type="behavior")
-cluster0 <- makeVarCovar(clust0)
-cluster2 <- makeVarCovar(clust2)
-cluster3 <- makeVarCovar(clust3)
+lowActivityRole <- sienaNet(clust0[,firstTime:lastTime],type="behavior")
+centralRole <- sienaNet(clust1[,firstTime:lastTime],type="behavior")
+periphExpertRole <- sienaNet(clust2[,firstTime:lastTime],type="behavior")
+newbieRole <- sienaNet(clust3[,firstTime:lastTime],type="behavior")
+lowActivityRole <- makeVarCovar(clust0)
+periphExpertRole <- makeVarCovar(clust2)
+newbieRole <- makeVarCovar(clust3)
 
-MyData <- sienaDataCreate(observation, cluster0, cluster1, cluster2, cluster3, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining)
+MyData <- sienaDataCreate(observation, lowActivityRole, centralRole, periphExpertRole, newbieRole, logged_edits, activeDays, complex_total,local_talk_total, daysSinceJoining)
 
 MyEffects <- getEffects(MyData)
 
@@ -94,11 +94,11 @@ MyEffects <- includeEffects(MyEffects,transTrip,name="observation")
 #MyEffects <- includeEffects(MyEffects, transTriads, balance,name="observation")
 
 # Include Behavior effects
-MyEffects <- includeEffects(MyEffects,simX, interaction1="cluster1", name="observation","creation")
+MyEffects <- includeEffects(MyEffects,simX, interaction1="centralRole", name="observation","creation")
 
-MyEffects <- includeEffects(MyEffects, name = "cluster1", avAlt, popAlt, interaction1 = "observation")
-#MyEffects <- includeEffects(MyEffects, name = "cluster2", avAlt, interaction1 = "observation")
-#MyEffects <- includeEffects(MyEffects, name = "cluster0", avAlt, interaction1 = "observation")
+MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, popAlt, interaction1 = "observation")
+#MyEffects <- includeEffects(MyEffects, name = "periphExpertRole", avAlt, interaction1 = "observation")
+#MyEffects <- includeEffects(MyEffects, name = "lowActivityRole", avAlt, interaction1 = "observation")
 
 # Covar effects
 #MyEffects <- includeEffects(MyEffects,egoX,simX, interaction1 = "logged_edits", name="observation")
@@ -120,11 +120,11 @@ MyEffects <- includeEffects(MyEffects, name = "cluster1", avAlt, popAlt, interac
 #MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="observation")
 # Effects on behavior
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "complexActivity", name="activityBeh")
-MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="cluster1")
-#MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "logged_edits", name="cluster1")
+MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="centralRole")
+#MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "logged_edits", name="centralRole")
 #MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "5")
 
-#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "cluster1", interaction1="daysSinceJoining", interaction2="localCom")
+#MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "centralRole", interaction1="daysSinceJoining", interaction2="localCom")
 
 #MyEffects <- includeEffects(MyEffects,X,name="observation",interaction1="localCom")
 MyModel <-sienaModelCreate(projname = "observationWithPopAlt")
