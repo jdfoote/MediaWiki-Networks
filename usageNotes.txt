@@ -34,4 +34,4 @@ Run getNetworkStats.R, which creates the overall networks, and some network stat
 
 RSiena
 
-Modify the runAnalysis.R file to run the RSiena simulations needed
+Modify the runAnalysis.R file to run the RSiena simulations needed. May heaven have mercy on your soul.
