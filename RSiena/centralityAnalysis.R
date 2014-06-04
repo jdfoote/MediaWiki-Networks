@@ -13,9 +13,9 @@ config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 # in matrix
 dichotCutoff = 1.9
 # Index of first date to include
-firstTime = 4
+firstTime = 1
 # Index of last date to include
-lastTime = 8
+lastTime = 4
 numWaves = 8
 # Number of nodes
 nodeCount = 161
@@ -27,12 +27,15 @@ importNetwork <- function(fileLocation){
 		nFile <- event2dichot(as.matrix(read.table(fileLocation)),method="absolute", thresh=dichotCutoff)
 		return(nFile)
 }
+currDir <- getwd()
+setwd("~/Programming/WeRelate/DataFiles/ThesisNetworks")
 collab <- array(sapply(filesToImport[seq(1,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 globCom <- array(sapply(filesToImport[seq(2,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 locCom <- array(sapply(filesToImport[seq(3,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 obs <- array(sapply(filesToImport[seq(4,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves))
 allNets <- collab + globCom + locCom + obs
 allNets[allNets > 0] <- 1
+setwd(currDir)
 
 Attributes <- as.data.frame(read.csv('../RSienaAttributeFile2.csv', header = TRUE))
 # Sort by date, then userID
@@ -76,7 +79,7 @@ observation <- sienaNet(obs[,,firstTime:lastTime])
 localCom <- sienaNet(locCom[,,firstTime:lastTime])
 globalCom <- sienaNet(globCom[,,firstTime:lastTime])
 collaboration <- sienaNet(collab[,,firstTime:lastTime])
-allInteractions <- sienaNet(totInt[,,firstTime:lastTime])
+allInteractions <- sienaNet(allNets[,,firstTime:lastTime])
 
 lowActivityRole <- sienaNet(clust0[,firstTime:lastTime],type="behavior")
 centralRole <- sienaNet(clust1[,firstTime:lastTime],type="behavior")
