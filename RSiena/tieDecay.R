@@ -125,14 +125,14 @@ MyEffects <- includeEffects(MyEffects,simX, interaction1="newbieRole", name="all
 #MyEffects <- includeTimeDummy(MyEffects, density, name="allInteractions", timeDummy = "5")
 
 #MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "centralRole", interaction1="daysSinceJoining", interaction2="localCom")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","centralRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","centralRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("periphExpertRole","centralRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","periphExpertRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","periphExpertRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","centralRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","centralRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("periphExpertRole","centralRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","periphExpertRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","periphExpertRole"), type="endow")
 
 #MyEffects <- includeEffects(MyEffects,X,name="allInteractions",interaction1="localCom")
 MyModel <-sienaModelCreate(projname = "allInteractionsTieDecay")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=FALSE)
 
-siena.table(MyResults, type="latex", file="allInteractionsTieDecayWithInteractionsResults.tex", sig=TRUE)
+siena.table(MyResults, type="latex", file="allInteractionsTieDecayResults.tex", sig=TRUE)

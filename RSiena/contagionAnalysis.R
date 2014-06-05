@@ -28,14 +28,18 @@ importNetwork <- function(fileLocation){
 		nFile <- event2dichot(as.matrix(read.table(fileLocation)),method="absolute", thresh=dichotCutoff)
 		return(nFile)
 }
+# Temporarily switch working directory (I couldn't figure out how to do this another way)
+currDir <- getwd()
+setwd("~/Programming/WeRelate/DataFiles/ThesisNetworks")
 collab <- array(sapply(filesToImport[seq(1,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 globCom <- array(sapply(filesToImport[seq(2,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 locCom <- array(sapply(filesToImport[seq(3,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves)) 
 obs <- array(sapply(filesToImport[seq(4,length(filesToImport),4)], importNetwork), c(nodeCount, nodeCount, numWaves))
 allNets <- collab + globCom + locCom + obs
 allNets[allNets > 1] <- 1
+setwd(currDir)
 
-Attributes <- as.data.frame(read.csv('../RSienaAttributeFile2.csv', header = TRUE))
+Attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile2.csv', header = TRUE))
 # Sort by date, then userID
 Attributes <- Attributes[with(Attributes, order(start_date, user_id)),]
 # Create dummy variables for clusters
@@ -72,7 +76,7 @@ observation <- sienaNet(obs[,,firstTime:lastTime])
 localCom <- sienaNet(locCom[,,firstTime:lastTime])
 globalCom <- sienaNet(globCom[,,firstTime:lastTime])
 collaboration <- sienaNet(collab[,,firstTime:lastTime])
-allInteractions <- sienaNet(totInt[,,firstTime:lastTime])
+allInteractions <- sienaNet(allNets[,,firstTime:lastTime])
 
 lowActivityRole <- sienaNet(clust0[,firstTime:lastTime],type="behavior")
 centralRole <- sienaNet(clust1[,firstTime:lastTime],type="behavior")
@@ -86,7 +90,7 @@ MyData <- sienaDataCreate(observation, lowActivityRole, centralRole, periphExper
 
 MyEffects <- getEffects(MyData)
 
-print01Report(MyData, MyEffects, modelname="clusterTest")
+print01Report(MyData, MyEffects, modelname="contagionCreate")
 
 # Include network effects
 MyEffects <- includeEffects(MyEffects,transTrip,name="observation")
@@ -94,9 +98,10 @@ MyEffects <- includeEffects(MyEffects,transTrip,name="observation")
 #MyEffects <- includeEffects(MyEffects, transTriads, balance,name="observation")
 
 # Include Behavior effects
-MyEffects <- includeEffects(MyEffects,simX, interaction1="centralRole", name="observation","creation")
+MyEffects <- includeEffects(MyEffects,simX, interaction1="centralRole", name="observation", type="creation")
 
-MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, popAlt, interaction1 = "observation")
+MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, interaction1 = "observation", type="creation")
+MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, interaction1 = "observation")
 #MyEffects <- includeEffects(MyEffects, name = "periphExpertRole", avAlt, interaction1 = "observation")
 #MyEffects <- includeEffects(MyEffects, name = "lowActivityRole", avAlt, interaction1 = "observation")
 
@@ -120,14 +125,15 @@ MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, popAlt, inte
 #MyEffects <- includeEffects(MyEffects,simX, interaction1 = "localTalkActivity", name="observation")
 # Effects on behavior
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "complexActivity", name="activityBeh")
+MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="centralRole",type="creation")
 MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "daysSinceJoining", name="centralRole")
 #MyEffects <- includeEffects(MyEffects,effFrom, interaction1 = "logged_edits", name="centralRole")
-#MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "5")
+MyEffects <- includeTimeDummy(MyEffects, density, name="observation", timeDummy = "5")
 
 #MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "centralRole", interaction1="daysSinceJoining", interaction2="localCom")
 
 #MyEffects <- includeEffects(MyEffects,X,name="observation",interaction1="localCom")
-MyModel <-sienaModelCreate(projname = "observationWithPopAlt")
+MyModel <-sienaModelCreate(projname = "observationContagionCreation")
 MyResults <- siena07(MyModel, data=MyData, effects=MyEffects,batch=FALSE)
 
-siena.table(MyResults, type="latex", file="observationResults.tex", sig=TRUE)
+siena.table(MyResults, type="latex", file="~/Programming/WeRelate/Results/observationCreationResults.tex", sig=TRUE)
