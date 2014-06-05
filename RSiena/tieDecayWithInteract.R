@@ -17,7 +17,7 @@ dichotCutoff = 1.9
 # Index of first date to include
 firstTime = 1
 # Index of last date to include
-lastTime = 8
+lastTime = 4
 numWaves = 8
 # Number of nodes
 nodeCount = 161
@@ -105,13 +105,13 @@ print01Report(MyData, MyEffects, modelname="allInteractionsTieDecayWithInteracti
 MyEffects <- includeEffects(MyEffects, transTriads, balance,name="allInteractions")
 
 # Include Behavior effects
-MyEffects <- includeEffects(MyEffects,simX, interaction1="lowActivityRole", name="allInteractions",type="endow")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1="lowActivityRole", name="allInteractions",type="endow")
 ##MyEffects <- includeEffects(MyEffects,simX, interaction1="lowActivityRole", name="allInteractions",type="creation")
 MyEffects <- includeEffects(MyEffects,simX, interaction1="centralRole", name="allInteractions",type="endow")
 ##MyEffects <- includeEffects(MyEffects,simX, interaction1="centralRole", name="allInteractions",type="creation")
 MyEffects <- includeEffects(MyEffects,simX, interaction1="periphExpertRole", name="allInteractions",type="endow")
 ##MyEffects <- includeEffects(MyEffects,simX, interaction1="periphExpertRole", name="allInteractions",type="creation")
-MyEffects <- includeEffects(MyEffects,simX, interaction1="newbieRole", name="allInteractions",type="endow")
+#MyEffects <- includeEffects(MyEffects,simX, interaction1="newbieRole", name="allInteractions",type="endow")
 #MyEffects <- includeEffects(MyEffects,simX, interaction1="newbieRole", name="allInteractions",type="creation")
 #MyEffects <- includeEffects(MyEffects, name = "centralRole", avAlt, interaction1 = "allInteractions")
 
@@ -125,11 +125,12 @@ MyEffects <- includeEffects(MyEffects,simX, interaction1="newbieRole", name="all
 #MyEffects <- includeTimeDummy(MyEffects, density, name="allInteractions", timeDummy = "5")
 
 #MyEffects <- includeEffects(MyEffects, avAltEgoX, name = "centralRole", interaction1="daysSinceJoining", interaction2="localCom")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","centralRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","centralRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","centralRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","centralRole"), type="endow")
 MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("periphExpertRole","centralRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","periphExpertRole"), type="endow")
-MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","periphExpertRole"), type="endow")
+MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("centralRole","periphExpertRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("newbieRole","periphExpertRole"), type="endow")
+#MyEffects <- includeInteraction(MyEffects, egoX, altX, name="allInteractions", interaction1=c("lowActivityRole","periphExpertRole"), type="endow")
 
 #MyEffects <- includeEffects(MyEffects,X,name="allInteractions",interaction1="localCom")
 MyModel <-sienaModelCreate(projname = "allInteractionsTieDecay")
