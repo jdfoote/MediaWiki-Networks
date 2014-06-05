@@ -94,7 +94,6 @@ print(table(netStats$mode))
 
 # Community detection
 
-
 makeCommunityPlot <-function(g, fname){
 		# Get color from netstats
 		V(g)$color <- netStats$color
@@ -118,7 +117,20 @@ makeCommunityPlot <-function(g, fname){
 		dev.off()
 }
 
+makeCommunityPlot(obsIgraph, 'observationComPlot.pdf')
 makeCommunityPlot(lcIgraph, 'localComPlot.pdf')
 makeCommunityPlot(gcIgraph, 'globalComPlot.pdf')
 makeCommunityPlot(cIgraph, 'collabPlot.pdf')
 
+# Figure out the percentage of users in role who are all in the same cluster - this is ugly, but don't have time to clean up right now
+ratioInTopCluster <- function(g, role){
+		comm <- walktrap.community(g)$membership
+		totRole <- sum(netStats$mode==role)
+		topClustRatio <- sort(table(comm[netStats$mode==role]), decreasing=TRUE[1])[1]/totRole
+		return(topClustRatio)
+}
+
+ratiosCluster <- sapply(list(obsIgraph,lcIgraph,gcIgraph,cIgraph), function(x) sapply(c('Central Members', 'Low Activity', 'Newbies', 'Peripheral Experts'), function(y) ratioInTopCluster(x,y)))
+
+colnames(ratiosCluster) <- c('Observation', 'Local Talk', 'Global Talk', 'Collaboration')
+stargazer(ratiosCluster)
