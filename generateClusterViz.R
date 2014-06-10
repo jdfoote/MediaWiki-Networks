@@ -5,12 +5,12 @@ library(ggplot2)
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
 # The location of the clusters by id file
-suffix = '0TrailingWithNAReversed'
+suffix = '1Trailing'
 xAxisText = 'Time before leaving'
+colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
 # The minimum number of times a user has to be in a given group in order to
 # be shown in the graph for that group
 minMonths = 2
-# Whether to reverse the clusters (to analyze quitting instead of beginning)
 #Import the data and add names of clusters
 clusterDF <- as.data.frame(read.csv(paste('clustersByID',suffix,'.csv',sep='')))
 numCols <- length(clusterDF)
@@ -26,7 +26,7 @@ makeGraph <- function(clusters, graphType="fill"){
 		plotData$Role <- factor(plotData$Role, c("Central Members","Peripheral Experts","Newbies","Low Activity"))
 		p <- (ggplot(plotData) +
 		  geom_area(aes(x=Time, y=Freq, fill=Role, group=Role, order=Role), position=graphType))
-		p <- p + scale_fill_manual(values=c("#69D2E7","#A7DBD8","#E0E4CC","#F38630"))
+		p <- p + scale_fill_manual(values=colors)
 		p <- p + scale_x_discrete(breaks=NULL, name=xAxisText) + ylab(ylabel)
 		return(p)
 }
@@ -39,7 +39,7 @@ makeLineGraph <- function(clusters, includeLA=TRUE){
 				plotData <- plotData[plotData$Role != 'Low Activity',]
 		}
 		p <- ggplot(plotData, aes(x=Time, y=Freq, group=Role, color = Role)) + geom_line(alpha=0.5)
-		p <- p + scale_color_manual(values=c("#69D2E7","#A7DBD8","#E0E4CC","#F38630"))
+		p <- p + scale_color_manual(values=colors)
 		p <- p + scale_x_discrete(breaks=NULL, name=xAxisText) + ylab("Number of users in each cluster")
 		return(p)
 }
