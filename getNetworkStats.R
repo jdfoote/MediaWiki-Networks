@@ -8,6 +8,7 @@ require(network)
 require(yaml)
 require(Hmisc)
 require(igraph)
+require(stargazer)
 
 config <- yaml.load_file('~/Programming/WeRelate/Code/config.yaml')
 attributes <- as.data.frame(read.csv('~/Programming/WeRelate/DataFiles/RSienaAttributeFile2.csv'))
@@ -39,9 +40,13 @@ allNets <- collab + globCom + locCom + obs
 allNets[allNets > 1] <- 1
 
 fullObs <- apply(obs,MARGIN=1:2,FUN=sum)
+fullObs[fullObs > 1] <- 1
 fullLocal <- apply(locCom,MARGIN=1:2,FUN=sum)
+fullLocal[fullLocal > 1] <- 1
 fullGlobal <- apply(globCom,MARGIN=1:2,FUN=sum)
+fullGlobal[fullGlobal > 1] <- 1
 fullCollab <- apply(collab,MARGIN=1:2,FUN=sum)
+fullCollab[fullCollab > 1] <- 1
 
 # Get the modes for each of the users in this dataset
 load("../modeVals.Rda")
@@ -101,19 +106,19 @@ makeCommunityPlot <-function(g, fname){
 		# Delete isolates
 		g <- delete.vertices(g, which(degree(g) < 1))
 		# Size by eigenvector centrality
-		V(g)$size <- evcent(g)$vector*15
+		V(g)$size <- (evcent(g)$vector +.3)*11
 		# Create community vector
 		communityPartitions <- walktrap.community(g)
 		# Select where to save
 		pdf(fname)
 		l <- layout.fruchterman.reingold(g,niter=500,area=vcount(g)^2.3,repulserad=vcount(g)^2.8)
-		l <- layout.fruchterman.reingold(g)
 		pl <-plot(communityPartitions, g,
-				  layout=layout.fruchterman.reingold,
+				  layout=l,
 				  vertex.label = V(g)$id,
-				  vertex.label.cex=1,
-				  vertex.color <- V(g)$color,
-				  edge.arrow.size=.3)
+				  vertex.label.cex=.3,
+				  vertex.color <- g$color,
+				  edge.arrow.size=.3,
+				  edge.color='black')
 		dev.off()
 }
 
