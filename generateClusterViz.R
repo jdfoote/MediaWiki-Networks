@@ -5,9 +5,12 @@ library(ggplot2)
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
 # The location of the clusters by id file
-suffix = '0TrailingWithNAReversed'
-xAxisText = 'Time before quitting'
+suffix = '1Trailing'
+xAxisText = 'Days since joining'
 colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
+xVals <- seq(6,72,6)
+xBreaks <- sapply(xVals, function(x) paste('T',x,sep=''))
+xLabs <- as.character(xVals*30)
 # The minimum number of times a user has to be in a given group in order to
 # be shown in the graph for that group
 minMonths = 2
@@ -20,14 +23,14 @@ clusterDF[2:numCols][clusterDF[2:numCols]==2] <- 'Peripheral Experts'
 clusterDF[2:numCols][clusterDF[2:numCols]==3] <- 'Newbies'
 
 makeGraph <- function(clusters, graphType="fill"){
-		ylabel <- if(graphType == 'fill') "Proportion of users in each cluster" else "Number of users in each cluster"
+		ylabel <- if(graphType == 'fill') "Proportion of users in each role" else "Number of users in each role"
 		mm <- melt(clusters, id.vars="id", variable.name="Time", value.name="Role")
 		plotData <- as.data.frame(with(mm, table(Role, Time)))
 		plotData$Role <- factor(plotData$Role, c("Core Members","Peripheral Experts","Newbies","Low Activity"))
 		p <- (ggplot(plotData) +
 		  geom_area(aes(x=Time, y=Freq, fill=Role, group=Role, order=Role), position=graphType))
 		p <- p + scale_fill_manual(values=colors)
-		p <- p + scale_x_discrete(breaks=NULL, name=xAxisText) + ylab(ylabel)
+		p <- p + scale_x_discrete(breaks=xBreaks,labels=xLabs, name=xAxisText) + ylab(ylabel)
 		return(p)
 }
 
@@ -40,7 +43,7 @@ makeLineGraph <- function(clusters, includeLA=TRUE){
 		}
 		p <- ggplot(plotData, aes(x=Time, y=Freq, group=Role, color = Role)) + geom_line(alpha=0.5)
 		p <- p + scale_color_manual(values=colors)
-		p <- p + scale_x_discrete(breaks=NULL, name=xAxisText) + ylab("Number of users in each cluster")
+		p <- p + scale_x_discrete(breaks=xBreaks,labels=xLabs, name=xAxisText) + ylab("Number of users in each role")
 		return(p)
 }
 
