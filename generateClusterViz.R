@@ -5,8 +5,8 @@ library(ggplot2)
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
 # The location of the clusters by id file
-suffix = '1Trailing'
-xAxisText = 'Time before leaving'
+suffix = '0TrailingWithNAReversed'
+xAxisText = 'Time before quitting'
 colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
 # The minimum number of times a user has to be in a given group in order to
 # be shown in the graph for that group
@@ -15,7 +15,7 @@ minMonths = 2
 clusterDF <- as.data.frame(read.csv(paste('clustersByID',suffix,'.csv',sep='')))
 numCols <- length(clusterDF)
 clusterDF[2:numCols][clusterDF[2:numCols]==0] <- 'Low Activity'
-clusterDF[2:numCols][clusterDF[2:numCols]==1] <- 'Central Members'
+clusterDF[2:numCols][clusterDF[2:numCols]==1] <- 'Core Members'
 clusterDF[2:numCols][clusterDF[2:numCols]==2] <- 'Peripheral Experts'
 clusterDF[2:numCols][clusterDF[2:numCols]==3] <- 'Newbies'
 
@@ -23,7 +23,7 @@ makeGraph <- function(clusters, graphType="fill"){
 		ylabel <- if(graphType == 'fill') "Proportion of users in each cluster" else "Number of users in each cluster"
 		mm <- melt(clusters, id.vars="id", variable.name="Time", value.name="Role")
 		plotData <- as.data.frame(with(mm, table(Role, Time)))
-		plotData$Role <- factor(plotData$Role, c("Central Members","Peripheral Experts","Newbies","Low Activity"))
+		plotData$Role <- factor(plotData$Role, c("Core Members","Peripheral Experts","Newbies","Low Activity"))
 		p <- (ggplot(plotData) +
 		  geom_area(aes(x=Time, y=Freq, fill=Role, group=Role, order=Role), position=graphType))
 		p <- p + scale_fill_manual(values=colors)
@@ -34,7 +34,7 @@ makeGraph <- function(clusters, graphType="fill"){
 makeLineGraph <- function(clusters, includeLA=TRUE){
 		mm <- melt(clusters, id.vars="id", variable.name="Time", value.name="Role")
 		plotData <- as.data.frame(with(mm, table(Role, Time)))
-		plotData$Role <- factor(plotData$Role, c("Central Members","Peripheral Experts","Newbies","Low Activity"))
+		plotData$Role <- factor(plotData$Role, c("Core Members","Peripheral Experts","Newbies","Low Activity"))
 		if (includeLA == FALSE){
 				plotData <- plotData[plotData$Role != 'Low Activity',]
 		}
@@ -52,7 +52,7 @@ ggsave(paste("../Results/allUsers",suffix,"Line.pdf",sep=''), plot=makeLineGraph
 # A version w/o the Low Activity
 ggsave(paste("../Results/allUsers",suffix,"LineNoLowAc.pdf",sep=''), plot=makeLineGraph(clusterDF, FALSE))
 
-cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Central Members", na.rm=TRUE) >= minMonths}),]
+cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Core Members", na.rm=TRUE) >= minMonths}),]
 ggsave(paste("../Results/Role1_",minMonths,"+",suffix,".pdf",sep=''), makeGraph(cl1))
 
 cl2 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Peripheral Experts", na.rm=TRUE) >= minMonths}),]
@@ -81,7 +81,7 @@ ggsave(paste("../Results/Role0Mode",suffix,".pdf",sep=""), makeGraph(mode0))
 ggsave(paste("../Results/Role0Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode0,"stack"))
 ggsave(paste("../Results/Role0Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode0))
 
-mode1 <- clusterDF[modeVals == "Central Members",]
+mode1 <- clusterDF[modeVals == "Core Members",]
 ggsave(paste("../Results/Role1Mode",suffix,".pdf",sep=""), makeGraph(mode1))
 ggsave(paste("../Results/Role1Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode1,"stack"))
 ggsave(paste("../Results/Role1Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode1))
