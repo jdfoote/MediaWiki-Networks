@@ -19,8 +19,8 @@ monthlyEdits <- transform(monthlyEdits, Date = as.Date(paste(yyyy, mon, 1, sep =
 monthlyUsers$Cumulative.Users <- cumsum(monthlyUsers$New.Users)
 monthlyUsers <- transform(monthlyUsers, Date = as.Date(paste(yyyy, mon, 1, sep = "-")))
 
-edits_long <- melt(monthlyEdits[,3:5], id="Date")
-users_long <- melt(monthlyUsers[,3:6], id="Date")
+edits_long <- melt(monthlyEdits[,c(3,5)], id="Date")
+users_long <- melt(monthlyUsers[,c(3,4,6)], id="Date")
 
 p <- ggplot(data=edits_long, aes(x=Date, y=value, group=variable, colour=variable))
 p <- p + geom_line()
