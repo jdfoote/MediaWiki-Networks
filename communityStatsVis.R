@@ -24,8 +24,12 @@ users_long <- melt(monthlyUsers[,c(3,4,6)], id="Date")
 
 p <- ggplot(data=edits_long, aes(x=Date, y=value, group=variable, colour=variable))
 p <- p + geom_line()
+p <- p + scale_color_discrete(name="")
+p <- p + ylab("Number of edits")
 ggsave('monthlyEdits.pdf', p)
 
 p <- ggplot(data=users_long, aes(x=Date, y=value, group=variable, colour=variable))
 p <- p + geom_line()
+p <- p + scale_color_discrete(name="User Type", breaks=c("Active.Users", "New.Users"), labels=c("All Active Users", "New Users"))
+p <- p + ylab("Number of users")
 ggsave('monthlyUsers.pdf', p)
