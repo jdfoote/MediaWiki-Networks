@@ -4,11 +4,13 @@ library(ggplot2)
 #clusters.mlt <- melt(clusters, id.vars="id")
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
+# Number of months to include
+monthsToInclude = 10
 # The location of the clusters by id file
 suffix = '0TrailingWithNAReversed'
 xAxisText = 'Days before leaving'
 colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
-xVals <- seq(6,72,6)
+xVals <- seq(2,10,2)
 xBreaks <- sapply(xVals, function(x) paste('T',x,sep=''))
 xLabs <- as.character(xVals*30)
 # The minimum number of times a user has to be in a given group in order to
@@ -22,7 +24,8 @@ clusterDF[2:numCols][clusterDF[2:numCols]==1] <- 'Central Members'
 clusterDF[2:numCols][clusterDF[2:numCols]==2] <- 'Peripheral Experts'
 clusterDF[2:numCols][clusterDF[2:numCols]==3] <- 'Newbies'
 
-makeGraph <- function(clusters, graphType="fill"){
+makeGraph <- function(clusters, graphType="fill", numMonths=monthsToInclude){
+		clusters = clusters[,0:numMonths+1]
 		ylabel <- if(graphType == 'fill') "Proportion of users in each role" else "Number of users in each role"
 		mm <- melt(clusters, id.vars="id", variable.name="Time", value.name="Role")
 		plotData <- as.data.frame(with(mm, table(Role, Time)))
@@ -34,7 +37,8 @@ makeGraph <- function(clusters, graphType="fill"){
 		return(p)
 }
 
-makeLineGraph <- function(clusters, includeLA=TRUE){
+makeLineGraph <- function(clusters, includeLA=TRUE, numMonths = monthsToInclude){
+		clusters = clusters[,0:numMonths+1]
 		mm <- melt(clusters, id.vars="id", variable.name="Time", value.name="Role")
 		plotData <- as.data.frame(with(mm, table(Role, Time)))
 		plotData$Role <- factor(plotData$Role, c("Central Members","Peripheral Experts","Newbies","Low Activity"))
