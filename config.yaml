@@ -1,7 +1,7 @@
 database: weRelate
 user: jeremy
-startDate: 2012-06-03 # Date of first edit
-endDate: 2013-02-26 # Date of most recent edit
+startDate: 2000-01-01 # Date of first edit
+endDate: 2015-12-31 # Date of most recent edit
 timeDelta: 30 # Days between periods of interest (for creating networks or behavior summaries
 nodeList: ~/Programming/WeRelate/DataFiles/overFiveEditsStartBefore20120603.csv
 saveLocation: ~/Programming/WeRelate/DataFiles/ThesisNetworks/
