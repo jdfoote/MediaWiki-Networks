@@ -4,13 +4,14 @@ library(ggplot2)
 #clusters.mlt <- melt(clusters, id.vars="id")
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
-# Number of months to include
-monthsToInclude = 10
 # The location of the clusters by id file
 suffix = '1Trailing'
+# Number of months to include
+monthsToInclude = 10
+# Where to put labels on the x axis (first month, last month, gap between months)
+xVals <- seq(2,10,2)
 xAxisText = 'Days since joining'
 colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
-xVals <- seq(2,10,2)
 xBreaks <- sapply(xVals, function(x) paste('T',x,sep=''))
 xLabs <- as.character(xVals*30)
 # The minimum number of times a user has to be in a given group in order to
