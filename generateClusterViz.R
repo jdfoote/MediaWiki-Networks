@@ -5,20 +5,27 @@ library(ggplot2)
 #clusters.agg <- aggregate(. ~ id + variable, clusters.mlt, sum)
 
 # The location of the clusters by id file
-suffix = '1Trailing'
+suffix = '0TrailingWithNAReversed'
+
 # Number of months to include
 monthsToInclude = 10
+monthsActiveMin = 6
+xAxisText = 'Days before quitting'
 # Where to put labels on the x axis (first month, last month, gap between months)
 xVals <- seq(2,10,2)
-xAxisText = 'Days since joining'
 colors <- c("#d7191c","#fdae61","#2b83ba","#88b083")
 xBreaks <- sapply(xVals, function(x) paste('T',x,sep=''))
 xLabs <- as.character(xVals*30)
 # The minimum number of times a user has to be in a given group in order to
 # be shown in the graph for that group
 minMonths = 2
+
 #Import the data and add names of clusters
 clusterDF <- as.data.frame(read.csv(paste('clustersByID',suffix,'.csv',sep='')))
+
+# Remove users who are active less than monthsActiveMin
+clusterDF <- clusterDF[complete.cases(clusterDF[,1:monthsActiveMin]),]
+
 numCols <- length(clusterDF)
 clusterDF[2:numCols][clusterDF[2:numCols]==0] <- 'Low Activity'
 clusterDF[2:numCols][clusterDF[2:numCols]==1] <- 'Core Members'
@@ -55,19 +62,20 @@ makeLineGraph <- function(clusters, includeLA=TRUE, numMonths = monthsToInclude)
 
 # Stats for just those who were in each group
 
-ggsave(paste("../Results/allUsers",suffix,"Ratio.pdf",sep=''), plot=makeGraph(clusterDF))
-ggsave(paste("../Results/allUsers",suffix,"Line.pdf",sep=''), plot=makeLineGraph(clusterDF))
+savePrefix = paste(suffix,monthsActiveMin,'monthsActive',monthsToInclude,'monthsShown',sep='')
+ggsave(paste("../Results/allUsers",savePrefix,"Ratio.pdf",sep=''), plot=makeGraph(clusterDF))
+ggsave(paste("../Results/allUsers",savePrefix,"Line.pdf",sep=''), plot=makeLineGraph(clusterDF))
 # A version w/o the Low Activity
-ggsave(paste("../Results/allUsers",suffix,"LineNoLowAc.pdf",sep=''), plot=makeLineGraph(clusterDF, FALSE))
+ggsave(paste("../Results/allUsers",savePrefix,"LineNoLowAc.pdf",sep=''), plot=makeLineGraph(clusterDF, FALSE))
 
 cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Core Members", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role1_",minMonths,"+",suffix,".pdf",sep=''), makeGraph(cl1))
+ggsave(paste("../Results/Role1_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl1))
 
 cl2 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Peripheral Experts", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role2_",minMonths,"+",suffix,".pdf",sep=''), makeGraph(cl2))
+ggsave(paste("../Results/Role2_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl2))
 
 cl3 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Newbies", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role3_",minMonths,"+",suffix,".pdf",sep=''), makeGraph(cl3))
+ggsave(paste("../Results/Role3_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl3))
 
 # Calculate the mode for each cluster
 Mode <- function(x) {
@@ -85,21 +93,21 @@ modeOut$mode <- modeVals
 save(modeOut, file='modeVals.Rda')
 
 mode0 <- clusterDF[modeVals == "Low Activity",]
-ggsave(paste("../Results/Role0Mode",suffix,".pdf",sep=""), makeGraph(mode0))
-ggsave(paste("../Results/Role0Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode0,"stack"))
-ggsave(paste("../Results/Role0Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode0))
+ggsave(paste("../Results/Role0Mode",savePrefix,".pdf",sep=""), makeGraph(mode0))
+ggsave(paste("../Results/Role0Mode",savePrefix,"Stack.pdf",sep=""), makeGraph(mode0,"stack"))
+ggsave(paste("../Results/Role0Mode",savePrefix,"Line.pdf",sep=""), makeLineGraph(mode0))
 
 mode1 <- clusterDF[modeVals == "Core Members",]
-ggsave(paste("../Results/Role1Mode",suffix,".pdf",sep=""), makeGraph(mode1))
-ggsave(paste("../Results/Role1Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode1,"stack"))
-ggsave(paste("../Results/Role1Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode1))
+ggsave(paste("../Results/Role1Mode",savePrefix,".pdf",sep=""), makeGraph(mode1))
+ggsave(paste("../Results/Role1Mode",savePrefix,"Stack.pdf",sep=""), makeGraph(mode1,"stack"))
+ggsave(paste("../Results/Role1Mode",savePrefix,"Line.pdf",sep=""), makeLineGraph(mode1))
 
 mode2 <- clusterDF[modeVals == "Peripheral Experts",]
-ggsave(paste("../Results/Role2Mode",suffix,".pdf",sep=""), makeGraph(mode2))
-ggsave(paste("../Results/Role2Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode2,"stack"))
-ggsave(paste("../Results/Role2Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode2))
+ggsave(paste("../Results/Role2Mode",savePrefix,".pdf",sep=""), makeGraph(mode2))
+ggsave(paste("../Results/Role2Mode",savePrefix,"Stack.pdf",sep=""), makeGraph(mode2,"stack"))
+ggsave(paste("../Results/Role2Mode",savePrefix,"Line.pdf",sep=""), makeLineGraph(mode2))
 
 mode3 <- clusterDF[modeVals == "Newbies",]
-ggsave(paste("../Results/Role3Mode",suffix,".pdf",sep=""), makeGraph(mode3))
-ggsave(paste("../Results/Role3Mode",suffix,"Stack.pdf",sep=""), makeGraph(mode3,"stack"))
-ggsave(paste("../Results/Role3Mode",suffix,"Line.pdf",sep=""), makeLineGraph(mode3))
+ggsave(paste("../Results/Role3Mode",savePrefix,".pdf",sep=""), makeGraph(mode3))
+ggsave(paste("../Results/Role3Mode",savePrefix,"Stack.pdf",sep=""), makeGraph(mode3,"stack"))
+ggsave(paste("../Results/Role3Mode",savePrefix,"Line.pdf",sep=""), makeLineGraph(mode3))
