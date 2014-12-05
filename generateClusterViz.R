@@ -68,15 +68,6 @@ ggsave(paste("../Results/allUsers",savePrefix,"Line.pdf",sep=''), plot=makeLineG
 # A version w/o the Low Activity
 ggsave(paste("../Results/allUsers",savePrefix,"LineNoLowAc.pdf",sep=''), plot=makeLineGraph(clusterDF, FALSE))
 
-cl1 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Core Members", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role1_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl1))
-
-cl2 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Peripheral Experts", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role2_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl2))
-
-cl3 <- clusterDF[apply(clusterDF, 1, function(x) {sum(x[2:numCols] == "Newbies", na.rm=TRUE) >= minMonths}),]
-ggsave(paste("../Results/Role3_",minMonths,"+",savePrefix,".pdf",sep=''), makeGraph(cl3))
-
 # Calculate the mode for each cluster
 Mode <- function(x) {
 		# Remove NA
