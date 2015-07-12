@@ -1,1 +1,0 @@
-\copy (SELECT EXTRACT(month from first_edit) as mon, EXTRACT(year from first_edit) as yyyy, COUNT (*) AS "New Users" FROM users WHERE user_id NOT IN (0,48) GROUP BY 2,1) TO '/home/jeremy/Programming/WeRelate/DataFiles/monthlyNew.csv' DELIMITER ',' HEADER CSV;

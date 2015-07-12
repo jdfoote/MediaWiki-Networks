@@ -1,1 +1,0 @@
-\copy (SELECT EXTRACT(month from edit_time) as mon, EXTRACT(year from edit_time) as yyyy, COUNT(*) AS "Edits" FROM non_bot_edits GROUP BY 1,2) to '/home/jeremy/Programming/WeRelate/DataFiles/MonthlyEdits.csv' DELIMITER ',' CSV HEADER;
