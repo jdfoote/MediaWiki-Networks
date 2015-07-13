@@ -1,17 +1,87 @@
 import re
 import csv
 import datetime
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from collections import defaultdict
 import yaml
+import argparse
+#from igraph import *
+import networkx as nx
+
+
+############ Goals: ###################
+# High-level Goal
+#   - Create network objects from edit data
+#
+# Technical Goals
+#   - Work by streaming csv files instead of using SQL (i.e., no lookups)
+#
+# Network Types
+#   - Co-editing (undirected) - A and B edit the same non-talk page within N 
+#       edits/editors/seconds of each other => increment_edge(A,B)
+#   - Collaboration (undirected) - network where edit_pattern = (A,B,C,...,A) =>
+#       for e in edit_pattern: increment_edge(A, e) if A != e
+#   - Talk (directed) - A and B edit the same talk page within N
+#       edits/editors/seconds of each other OR
+#       A edit's B's User_talk page => increment_edge(A,B)
+
+# Idea space:
+#   - Talk network. 
+#       - Whether to connect people on Watercooler-type pages
+#   - Sorting CSV will be required
+#       - Sort by page, then timestamp should do the trick?
+
+
+
 
 with open('./config.yaml', 'rb') as f:
     config = yaml.load(f)
 
-conn = psycopg2.connect("dbname={} user={}".format(config['database'], config['user']))
+def make_coedit_network(edits, edit_limit=None, editor_limit=None,
+        time_limit=None, loops_allowed=False, include_talk=False):
+    '''
+    Creates a network object based on co-edits on the same page. Takes a list of edits.
+    THESE MUST BE ORDERED, by page and by edit_time. Also takes a number
+    of conditions that must exist for an edge to be created. edit_limit will create edges
+    with the contributors of each of the last N edits (e.g., edit_limit = 1 means that
+    only adjacent edits will result in edges.
+    editor_limit is similar, but will create edges with the last N editors, while
+    time_limit creates edges with all editors who have edited in the last N seconds.
+    By default, there are no limits, and edges are created/incremented with all
+    other contributors to the page.
+    loops_allowed parameter tells whether a user can have an edge with herself.
+    '''
+    network = nx.Graph()
+    curr_page = ''
+    prev_edits = []
+    for edit in edits:
+        if include_talk == False:
+            if is_talk(edit):
+                continue
+        # If this is a new page, then reset stuff and don't create edges
+        if edit['page'] != curr_page:
+            prev_edits = [edit,]
+            continue
+        else:
+            if edit_limit:
+                prev_edits = prev_edits[-edit_limit:]
+            # Go through each of the edits in reverse order, adding edges
+            # to each. Once we find one that fails the tests, only keep
+            # the edits after that one (since all others would also fail, 
+            # for this and subsequent edits)).
+            editors = []
+            for i, prev_edit in enumerate(prev_edits[::-1]):
+                if (editor_limit and len(editors) >= editor_limit) or
+                    (time_limit and elapsed_time(edit, prev_edit) > time_limit):
+                    # Only keep the good edits
+                    prev_edits = prev_edits[-i:]
+                    break
+                else:
+                    increment_edge(edit, prev_edit)
+                    editors += prev_edit['contributor']
 
-def makeCollaborationNetwork(userList, startTime, endTime, delta, cutoff):
+
+
+
+def makeCollaborationNetwork(
     '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
     Returns an undirected, weighted network matrix, where X(ij) is
     increased by 1 if i and j made alternating edits within the last
