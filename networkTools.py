@@ -35,8 +35,19 @@ import networkx as nx
 with open('./config.yaml', 'rb') as f:
     config = yaml.load(f)
 
+
+class EditNetwork(nx.Graph):
+    def __init__(self):
+        super().__init__()
+    def increment_edge(self, from_node, to_node, weight=1):
+        if self.has_edge(from_node, to_node):
+            self[from_node][to_node]['weight'] += weight
+        else:
+            self.add_edge(from_node, to_node, weight=weight)
+
+
 def make_coedit_network(edits, edit_limit=None, editor_limit=None,
-        time_limit=None, loops_allowed=False, include_talk=False):
+        time_limit=None, include_talk=False):
     '''
     Creates a network object based on co-edits on the same page. Takes a list of edits.
     THESE MUST BE ORDERED, by page and by edit_time. Also takes a number
@@ -47,9 +58,8 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
     time_limit creates edges with all editors who have edited in the last N seconds.
     By default, there are no limits, and edges are created/incremented with all
     other contributors to the page.
-    loops_allowed parameter tells whether a user can have an edge with herself.
     '''
-    network = nx.Graph()
+    network = EditNetwork()
     curr_page = ''
     prev_edits = []
     for edit in edits:
@@ -58,6 +68,7 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
                 continue
         # If this is a new page, then reset stuff and don't create edges
         if edit['page'] != curr_page:
+            curr_page = edit['page']
             prev_edits = [edit,]
             continue
         else:
@@ -66,17 +77,41 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
             # Go through each of the edits in reverse order, adding edges
             # to each. Once we find one that fails the tests, only keep
             # the edits after that one (since all others would also fail, 
-            # for this and subsequent edits)).
-            editors = []
+            # for this and subsequent edits).
+            nodes_added = []
             for i, prev_edit in enumerate(prev_edits[::-1]):
-                if (editor_limit and len(editors) >= editor_limit) or
-                    (time_limit and elapsed_time(edit, prev_edit) > time_limit):
+                if (editor_limit and len(nodes_added) >= editor_limit) or
+                        (time_limit and elapsed_time(edit, prev_edit) > time_limit):
                     # Only keep the good edits
                     prev_edits = prev_edits[-i:]
                     break
+                # If we've already seen this contributor, then we stop looking for
+                # more edges, because any edges previous to
+                # this one will have been captured when we looked at this contributor
+                # previously.
+                #
+                # We don't get rid of the other prev_edits, though, b/c they might
+                # be valid edges for subsequent edits
+                if same_editor(edit, prev_edit):
+                    break
                 else:
-                    increment_edge(edit, prev_edit)
-                    editors += prev_edit['contributor']
+                    # Don't add the same edge multiple times
+                    if prev_edit['contributor'] not in nodes_added:
+                        network.increment_edge(edit['contributor',
+                                                prev_edit'contributor'])
+                        nodes_added.append(prev_edit['contributor'])
+    return network
+
+
+def elapsed_time(edit1, edit2):
+    return edit2['timestamp'] - edit1['timestamp']
+
+def is_talk(edit):
+    r = re.compile(r'[tT]alk$')
+    return r.search(edit['namespace'])
+
+def same_editor(edit1, edit2):
+    return edit1['contributor'] == edit2['contributor']
 
 
 
