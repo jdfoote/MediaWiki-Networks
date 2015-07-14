@@ -5,6 +5,7 @@ import yaml
 import argparse
 #from igraph import *
 import networkx as nx
+import sys
 
 
 ############ Goals: ###################
@@ -47,7 +48,7 @@ class EditNetwork(nx.Graph):
 
 
 def make_coedit_network(edits, edit_limit=None, editor_limit=None,
-        time_limit=None, include_talk=False):
+        time_limit=None, include_talk=False, collaboration_network=False):
     '''
     Creates a network object based on co-edits on the same page. Takes a list of edits.
     THESE MUST BE ORDERED, by page and by edit_time. Also takes a number
@@ -63,12 +64,16 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
     curr_page = ''
     prev_edits = []
     for edit in edits:
+        # Flag for whether this edit represents a collaboration (i.e., if
+        # this editor has edited this page before, then intervening editors
+        # are considered collaborators
+        is_collaboration = False
         if include_talk == False:
             if is_talk(edit):
                 continue
         # If this is a new page, then reset stuff and don't create edges
-        if edit['page'] != curr_page:
-            curr_page = edit['page']
+        if edit['articleid'] != curr_page:
+            curr_page = edit['articleid']
             prev_edits = [edit,]
             continue
         else:
@@ -78,10 +83,12 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
             # to each. Once we find one that fails the tests, only keep
             # the edits after that one (since all others would also fail, 
             # for this and subsequent edits).
-            nodes_added = []
-            for i, prev_edit in enumerate(prev_edits[::-1]):
-                if (editor_limit and len(nodes_added) >= editor_limit) or
-                        (time_limit and elapsed_time(edit, prev_edit) > time_limit):
+            coeditors = []
+            for prev_edit in prev_edits[::-1]:
+                if (
+                        (editor_limit and len(coeditors) >= editor_limit) or
+                        (time_limit and elapsed_time(edit, prev_edit) > time_limit)
+                    ):
                     # Only keep the good edits
                     prev_edits = prev_edits[-i:]
                     break
@@ -93,35 +100,43 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
                 # We don't get rid of the other prev_edits, though, b/c they might
                 # be valid edges for subsequent edits
                 if same_editor(edit, prev_edit):
+                    is_collaboration = True
                     break
                 else:
                     # Don't add the same edge multiple times
-                    if prev_edit['contributor'] not in nodes_added:
-                        network.increment_edge(edit['contributor',
-                                                prev_edit'contributor'])
-                        nodes_added.append(prev_edit['contributor'])
+                    if prev_edit['editor'] not in coeditors:
+                        coeditors.append(prev_edit['editor'])
+        # Create edges for each of the editors in the coeditor list
+        if (not collaboration_network) or (is_collaboration == True):
+            (network.increment_edge(edit['editor'],coeditor)
+                            for coeditor in coeditors)
     return network
 
 
 def elapsed_time(edit1, edit2):
-    return edit2['timestamp'] - edit1['timestamp']
+    return datetime.strptime(edit2['timestamp']) - datetime.strptime(edit1['timestamp'])
 
 def is_talk(edit):
     r = re.compile(r'[tT]alk$')
     return r.search(edit['namespace'])
 
 def same_editor(edit1, edit2):
-    return edit1['contributor'] == edit2['contributor']
+    return edit1['editor'] == edit2['editor']
+
+
+with open(sys.argv[1], 'r') as c:
+    e = csv.DictReader(c, delimiter="\t")
+    n = make_coedit_network(e)
 
 
 
-
-def makeCollaborationNetwork(
+def makeCollaborationNetwork():
     '''Takes a list of users of interest, a start time, an end time, and a cutoff (integer).
     Returns an undirected, weighted network matrix, where X(ij) is
     increased by 1 if i and j made alternating edits within the last
     delta days, such that at least one edit by j occurred between two
     edits made by i.'''
+
     collaborationDict = {x:getCollaborators(x, startTime, endTime, delta, userList) for x in userList}
     return networkDictToMatrix(collaborationDict, cutoff = cutoff, dichotomize = False, directed = False)
 
