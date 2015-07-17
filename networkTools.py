@@ -2,9 +2,8 @@ import re
 import csv
 import datetime
 import yaml
-import argparse
-#from igraph import *
-import networkx as nx
+import igraph
+#import networkx as nx
 import sys
 
 
@@ -31,20 +30,21 @@ import sys
 #       - Sort by page, then timestamp should do the trick?
 
 
-
-
-with open('./config.yaml', 'rb') as f:
-    config = yaml.load(f)
-
-
-class EditNetwork(nx.Graph):
+class EditNetwork(igraph.Graph):
     def __init__(self):
         super().__init__()
-    def increment_edge(self, from_node, to_node, weight=1):
-        if self.has_edge(from_node, to_node):
-            self[from_node][to_node]['weight'] += weight
-        else:
-            self.add_edge(from_node, to_node, weight=weight)
+        self.temp_edges = []
+    def new_edges(self, from_node, to_nodes):
+        self.temp_edges += [[from_node, to_node] for to_node in to_nodes]
+    def make_network(self):
+        nodes = set([n for e in self.temp_edges for n in e])
+        nodes = sorted(nodes)
+        self.add_vertices(nodes)
+        self.add_edges(self.temp_edges)
+    def collapse_weights(self):
+        self.es['weight'] = 1
+        self.simplify(combine_edges={"weight": "sum"})
+
 
 
 def make_coedit_network(edits, edit_limit=None, editor_limit=None,
@@ -108,8 +108,9 @@ def make_coedit_network(edits, edit_limit=None, editor_limit=None,
                         coeditors.append(prev_edit['editor'])
         # Create edges for each of the editors in the coeditor list
         if (not collaboration_network) or (is_collaboration == True):
-            (network.increment_edge(edit['editor'],coeditor)
-                            for coeditor in coeditors)
+            network.new_edges(edit['editor'],coeditors)
+    network.make_network()
+    network.collapse_weights()
     return network
 
 
@@ -124,9 +125,6 @@ def same_editor(edit1, edit2):
     return edit1['editor'] == edit2['editor']
 
 
-with open(sys.argv[1], 'r') as c:
-    e = csv.DictReader(c, delimiter="\t")
-    n = make_coedit_network(e)
 
 
 
