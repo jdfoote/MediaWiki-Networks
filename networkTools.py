@@ -95,7 +95,7 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
         if network_type != "talk" and edit_is_talk_page:
             continue
         if network_type == "talk":
-            if edit_is_talk_page == False:
+            if not edit_is_talk_page:
                 continue
             else:
                 # if this is a talk page, find out if it's a user talk page.
@@ -170,7 +170,7 @@ def elapsed_time(t1, t2):
 
 
 def is_talk(edit):
-    return re.search('[Tt]alk', edit['namespace'])
+    return re.match(r'[^:]*[Tt]alk:', edit['title'])
 
 def same_editor(edit1, edit2):
     return edit1['editor'] == edit2['editor']
