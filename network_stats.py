@@ -22,5 +22,15 @@ output = p2.communicate()[0]
 output = output.decode('utf-8')
 edits = csv.DictReader(output.splitlines(), delimiter="\t", fieldnames=header_row)
 
-n = nT.make_coedit_network(edits)
-print(n.density())
+coedit_net = nT.make_network(edits, "coedit")
+talk_net = nT.make_network(edits, "talk")
+
+with open(args.o, 'w') as output:
+    o = csv.writer(output, delimiter="\t")
+    o.writerow(['wiki_name', 'coedit_density','coedit_diameter',
+        'coedit_clustering_coef', 'talk_density', 'talk_diameter', 'talk_clustering_coef'])
+    o.writerow([fn, coedit_net.density(), coedit_net.diameter(),
+                coedit_net.transitivity_undirected(),
+                talk_net.density(), talk_net.diameter(),
+                talk_net.transitivity_undirected()])
+
