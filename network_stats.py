@@ -22,7 +22,7 @@ output = p2.communicate()[0]
 output = output.decode('utf-8')
 edits = csv.DictReader(output.splitlines(), delimiter="\t", fieldnames=header_row)
 
-coedit_net = nT.make_network(edits, "coedit")
+coedit_net = nT.make_network(edits, "coedit", edit_limit=5, editor_limit=2, time_limit=5,section_filter=True )
 talk_net = nT.make_network(edits, "talk")
 
 with open(args.o, 'w') as output:
