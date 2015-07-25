@@ -170,7 +170,10 @@ def elapsed_time(t1, t2):
 
 
 def is_talk(edit):
-    return re.match(r'[^:]*[Tt]alk:', edit['title'])
+    '''Returns whether or not an edit was to a talk page.
+    Assumes that talk pages have odd-numbered namespaces'''
+    # re.match(r'[^:]*[Tt]alk:', edit['title']) - other option
+    return int(edit['namespace']) % 2 == 1
 
 def same_editor(edit1, edit2):
     return edit1['editor'] == edit2['editor']
