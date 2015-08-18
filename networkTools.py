@@ -30,8 +30,11 @@ import sys
 
 
 class EditNetwork(igraph.Graph):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, network_type):
+        if network_type =='talk':
+            super().__init__(directed=True)
+        else:
+            super().__init__()
         self.temp_edges = []
     def new_edges(self, from_node, to_nodes):
         self.temp_edges += [[from_node, to_node] for to_node in to_nodes]
@@ -43,6 +46,42 @@ class EditNetwork(igraph.Graph):
         self.es['weight'] = 1
     def collapse_weights(self):
         self.simplify(combine_edges={"weight": "sum"})
+    def betweenness(self, vertices=None, normalized=True):
+        non_normalized_betweenness = super(EditNetwork, self).betweenness(vertices=vertices)
+        n = self.vcount()
+        if normalized == True:
+            # This is the normalization used by ipython in R (http://www.inside-r.org/packages/cran/igraph/docs/betweenness)
+            return  non_normalized_betweenness * 2 / (n*n-3*n+2)
+        else:
+            return non_normalized_betweenness
+    def hierarchy(self):
+        '''Returns the hierarchy measure created by Krackhardt(1994) for the graph.
+        This is defined as the ratio of paths in the graph which are cyclical/reciprocated.
+        For a given path from v_i to v_j, the path is cyclical if there also exists a path
+        from v_j to v_i.'''
+        if not self.is_directed():
+            raise ValueError("Hierarchy measure is only available on directed networks")
+        else:
+            # Get the shortest paths (this tells us whether there is a path between any two nodes)
+            p = self.shortest_paths()
+            # Number of hierarchical paths (non-cycles)
+            h_paths = 0
+            # Number of cyclical paths 
+            cycles = 0
+            for i in range(len(p)):
+                for j in range(len(p)):
+                    # Check if a path exists between the nodes
+                    if i != j and p[i][j] != float('inf'):
+                        # If it does, and the reciprocal path also exist, increment the cycle count
+                        if p[j][i] < float('inf'):
+                            cycles += 1
+                        else:
+                            # Otherwise, increment the h_paths count
+                            h_paths += 1
+            # Return the ratio of h_paths
+            if h_paths == cycles == 0:
+                return None
+            return h_paths / (h_paths + cycles)
 
 
 
@@ -71,7 +110,7 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
     if network_type not in ['coedit', 'collaboration', 'talk']:
         raise Exception("network_type must be 'coedit', 'collaboration', or 'talk'")
     time_limit = datetime.timedelta(days = time_limit) if time_limit else None
-    network = EditNetwork()
+    network = EditNetwork(network_type)
     curr_page = ''
     prev_edits = []
     for edit in edits:
@@ -173,6 +212,8 @@ def is_talk(edit):
     '''Returns whether or not an edit was to a talk page.
     Assumes that talk pages have odd-numbered namespaces'''
     # re.match(r'[^:]*[Tt]alk:', edit['title']) - other option
+    if edit['namespace'] == 'None':
+        return None
     return int(edit['namespace']) % 2 == 1
 
 def same_editor(edit1, edit2):
