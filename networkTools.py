@@ -47,11 +47,22 @@ class EditNetwork(igraph.Graph):
     def collapse_weights(self):
         self.simplify(combine_edges={"weight": "sum"})
     def betweenness(self, vertices=None, normalized=True):
+        '''Takes a single vertex or list of vertices, and returns the betweenness from igraph.
+        If normalized == True, then normalizes based on the constant used by ipython in R'''
+
+        def normalize_val(x):
+            # This is the normalization used by ipython in R (http://www.inside-r.org/packages/cran/igraph/docs/betweenness)
+            return x * 2 / (n*n-3*n+2)
+
         non_normalized_betweenness = super(EditNetwork, self).betweenness(vertices=vertices)
         n = self.vcount()
         if normalized == True:
-            # This is the normalization used by ipython in R (http://www.inside-r.org/packages/cran/igraph/docs/betweenness)
-            return  non_normalized_betweenness * 2 / (n*n-3*n+2)
+            try:
+                # If it's just a float, then normalize and return
+                return normalize_val(non_normalized_betweenness)
+            except TypeError:
+                # Otherwise, normalize the whole list, and return
+                return [normalize_val(x) for x in non_normalized_betweenness]
         else:
             return non_normalized_betweenness
     def hierarchy(self):
@@ -61,27 +72,35 @@ class EditNetwork(igraph.Graph):
         from v_j to v_i.'''
         if not self.is_directed():
             raise ValueError("Hierarchy measure is only available on directed networks")
-        else:
-            # Get the shortest paths (this tells us whether there is a path between any two nodes)
-            p = self.shortest_paths()
-            # Number of hierarchical paths (non-cycles)
-            h_paths = 0
-            # Number of cyclical paths 
-            cycles = 0
-            for i in range(len(p)):
-                for j in range(len(p)):
-                    # Check if a path exists between the nodes
-                    if i != j and p[i][j] != float('inf'):
-                        # If it does, and the reciprocal path also exist, increment the cycle count
-                        if p[j][i] < float('inf'):
-                            cycles += 1
-                        else:
-                            # Otherwise, increment the h_paths count
-                            h_paths += 1
-            # Return the ratio of h_paths
-            if h_paths == cycles == 0:
-                return None
-            return h_paths / (h_paths + cycles)
+        # Get the shortest paths (this tells us whether there is a path between any two nodes)
+        p = self.shortest_paths()
+        # Number of hierarchical paths (non-cycles)
+        h_paths = 0
+        # Number of cyclical paths 
+        cycles = 0
+        for i in range(len(p)):
+            for j in range(len(p)):
+                # Check if a path exists between the nodes
+                if i != j and p[i][j] != float('inf'):
+                    # If it does, and the reciprocal path also exist, increment the cycle count
+                    if p[j][i] < float('inf'):
+                        cycles += 1
+                    else:
+                        # Otherwise, increment the h_paths count
+                        h_paths += 1
+        # Return the ratio of h_paths
+        if h_paths == cycles == 0:
+            return None
+        return h_paths / (h_paths + cycles)
+
+    def effective_size(self, vertex):
+        ego_neighbors = self.neighbors(vertex)
+        neighbor_graph = self.induced_subgraph(ego_neighbors)
+        # Calculation of effective size, as described at http://www.analytictech.com/ucinet/help/hs4126.htm
+        # First, get the degree of all the neighbors
+        ng_degree = neighbor_graph.degree()
+        # Then average the degree, and subtract it from the number of neighbors
+        return len(ng_degree) - sum(ng_degree)/len(ng_degree)
 
 
 
