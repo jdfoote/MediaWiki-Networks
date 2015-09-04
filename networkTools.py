@@ -30,29 +30,37 @@ import sys
 
 
 class EditNetwork(igraph.Graph):
+
     def __init__(self, network_type):
         if network_type =='talk':
             super().__init__(directed=True)
         else:
             super().__init__()
         self.temp_edges = []
+
     def new_edges(self, from_node, to_nodes):
         self.temp_edges += [[from_node, to_node] for to_node in to_nodes]
+
     def make_network(self):
         nodes = set([n for e in self.temp_edges for n in e])
         nodes = sorted(nodes)
         self.add_vertices(nodes)
         self.add_edges(self.temp_edges)
         self.es['weight'] = 1
+
     def collapse_weights(self):
         self.simplify(combine_edges={"weight": "sum"})
+
     def betweenness(self, vertices=None, normalized=True):
         '''Takes a single vertex or list of vertices, and returns the betweenness from igraph.
         If normalized == True, then normalizes based on the constant used by ipython in R'''
 
         def normalize_val(x):
             # This is the normalization used by ipython in R (http://www.inside-r.org/packages/cran/igraph/docs/betweenness)
-            return x * 2 / (n*n-3*n+2)
+            if x == 0:
+                return 0
+            else:
+                return x * 2 / (n*n-3*n+2)
 
         non_normalized_betweenness = super(EditNetwork, self).betweenness(vertices=vertices)
         n = self.vcount()
@@ -65,6 +73,7 @@ class EditNetwork(igraph.Graph):
                 return [normalize_val(x) for x in non_normalized_betweenness]
         else:
             return non_normalized_betweenness
+
     def hierarchy(self):
         '''Returns the hierarchy measure created by Krackhardt(1994) for the graph.
         This is defined as the ratio of paths in the graph which are cyclical/reciprocated.
@@ -108,7 +117,7 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
         time_limit=None, section_filter=False):
     '''
     Creates a network object based on co-edits on the same page. Takes a list of edits.
-    THESE MUST BE ORDERED, by page and by edit_time. Also takes a number
+    THESE MUST BE ORDERED, by page and then by edit_time. Also takes a number
     of conditions that must exist for an edge to be created. edit_limit will create edges
     with the contributors of each of the last N edits (e.g., edit_limit = 1 means that
     only adjacent edits will result in edges.
@@ -117,6 +126,7 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
     By default, there are no limits, and edges are created/incremented with all
     other contributors to the page.
     '''
+
     def add_edit(new_edit):
         '''Simple helper function that adds the current edit to the
         prev_edits list'''
@@ -124,7 +134,6 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
         # Add the metadata to the edit
         prev_edits[-1]['section'] = section
         prev_edits[-1]['edit_time'] = edit_time
-
 
     if network_type not in ['coedit', 'collaboration', 'talk']:
         raise Exception("network_type must be 'coedit', 'collaboration', or 'talk'")
@@ -167,7 +176,7 @@ def make_network(edits, network_type="coedit", edit_limit=None, editor_limit=Non
         # (because no edge can be created yet)
         if edit['articleid'] != curr_page:
             # Handle the situation where the first edit to a user_talk page
-            # Might not be recorded
+            # might not be recorded
             if coeditors:
                 network.new_edges(edit['editor'],coeditors)
             curr_page = edit['articleid']
@@ -239,10 +248,11 @@ def same_editor(edit1, edit2):
     return edit1['editor'] == edit2['editor']
 
 def get_talk_page_owner(edit):
-    '''Checks a talk page to see if it's a user talk page. If it is a user talk
+    '''Checks a talk page to see if it's a user talk page (ASSUMES THAT
+    THESE ARE NAMESPACE 3). If it is a user talk
     page, then returns the user name. Otherwise, returns None'''
-    if edit['namespace'] == 'User_talk':
-        return re.match('User_talk:(.*)$',edit['title']).group(1)
+    if edit['namespace'] == 3:
+        return re.match('[^:]+:(.*)$',edit['title']).group(1)
     else:
         return None
 
@@ -250,6 +260,7 @@ def get_talk_page_owner(edit):
 def get_section_from_comment(comment):
     '''Finds the section an edit was made to, based on the comment.
 
+    ASSUMPTION:
     The first edit to a section is formatted as "Section name [dd mon yyyy]".
     Subsequent edits are "/* Section name \* Comment here".
     If there is no section name, then return None.'''
