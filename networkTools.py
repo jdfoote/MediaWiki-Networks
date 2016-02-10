@@ -48,6 +48,11 @@ class EditNetwork(igraph.Graph):
         self.add_edges(self.temp_edges)
         self.es['weight'] = 1
 
+    def subgraph(self, vertices):
+        v_names = [x['name'] for x in self.vs()]
+        return self.induced_subgraph([v for v in vertices if v in v_names])
+
+
     def collapse_weights(self):
         self.simplify(combine_edges={"weight": "sum"})
 
@@ -100,7 +105,7 @@ class EditNetwork(igraph.Graph):
         # Return the ratio of h_paths
         if h_paths == cycles == 0:
             return None
-        return h_paths / (h_paths + cycles)
+        return 1 - (h_paths / (h_paths + cycles))
 
     def effective_size(self, vertex):
         ego_neighbors = self.neighbors(vertex)
