@@ -4,6 +4,7 @@ import datetime
 import igraph
 #import networkx as nx
 import sys
+from statistics import mean
 
 
 ############ Goals: ###################
@@ -37,6 +38,9 @@ class EditNetwork(igraph.Graph):
         else:
             super().__init__()
         self.temp_edges = []
+
+    def avg_weight(self):
+        return mean(self.es['weight'])
 
     def new_edges(self, from_node, to_nodes):
         self.temp_edges += [[from_node, to_node] for to_node in to_nodes]
@@ -105,7 +109,7 @@ class EditNetwork(igraph.Graph):
         # Return the ratio of h_paths
         if h_paths == cycles == 0:
             return None
-        return 1 - (h_paths / (h_paths + cycles))
+        return h_paths / (h_paths + cycles)
 
     def effective_size(self, vertex):
         ego_neighbors = self.neighbors(vertex)
