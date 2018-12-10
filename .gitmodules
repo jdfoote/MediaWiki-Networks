@@ -1,0 +1,3 @@
+[submodule "mediawiki_dump_tools"]
+	path = mediawiki_dump_tools
+	url = git://code.communitydata.cc/mediawiki_dump_tools.git

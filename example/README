@@ -1,0 +1,9 @@
+This is intended to give an example of how to run this library.
+
+1. Take the original dump files in the dump_files directory and convert them to TSV with:
+`bash 01_convert_dump_files.sh`
+
+2. Then, convert TSV files to statistics doing something like:
+`python3 02_wiki_stats.py -i tsv_files/sailormoon.tsv -o output_files`
+
+You can then cat these files togeter at the end to have one big stats file.

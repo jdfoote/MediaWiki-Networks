@@ -1,11 +1,18 @@
 MediaWiki-Networks
 ==================
-This is a bunch of code that I've been using to collect data from the XML dump of edit history for users of the WeRelate website.
 
-Right now, it can produce three types of networks: co-editing, collaboration, and talk.
+This project is designed to take Wikimedia XML dump files and convert them into network files. 
 
-- Co-editing networks are undirected, and and edge is created (or incremented) between *i* and *j* iff *i* and *j* have edited the same page.
-- Collaboration networks are similar, but only increment/create an edge between *i* and *j* if *i* edits, then *j* edits, then at some later point, *i* edits again.
-- Finally, talk networks generally work like co-editing networks, only they are directed, such that if *i* edits the page after *j*, *i* is assumed to be talking to *j*. In addition, the talk networks tries to find the owner of a user talk page, and makes an edge from the editor of the page to the owner.
+The typical workflow is:
+- Convert XML files to TSV files using the mediawiki_dump_tools
+- Convert TSV files to networks
+- Either store the networks as edgelists or visualize/create stats from them directly from the igraph objects
 
-The network_stats.py is a simple example of how you might retrieve networks statstics form a newtork.
+This imports mediawiki_dump_tools as a submodule. To use it:
+From within the repository working directory, initiatlize and set up the submodule like::
+	git submodule init
+	git submodule update
+
+An example project is in the example directory.
+
+Pull requests are very welcome
